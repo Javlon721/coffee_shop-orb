@@ -1,5 +1,6 @@
 
 from fastapi import HTTPException, status
+from auth.utils import hash_password
 from db.connection import PsycopgDB
 from db.models import DB
 from users.models import OKResponce, RegisterUser, User
@@ -18,6 +19,9 @@ class _UsersRepository:
   def create(self, user: RegisterUser) -> OKResponce:
     if self.isUserExist(user.email):
       raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
+
+    hashed_password = hash_password(user.password)
+    user.set_hashed_password(hashed_password)
 
     user_info = user.model_dump(exclude_none=True, exclude_defaults=True)
     columns = ", ".join(user_info.keys())
