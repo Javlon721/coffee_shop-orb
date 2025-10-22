@@ -1,0 +1,46 @@
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+/**/__pycache__/
+
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be added to the global gitignore or merged into this project gitignore.
+.idea/
+
+# VS Code
+.vscode/
+
+# Environments
+.env.*
+.env
+.venv
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+!.env.template
+
+# OS generated files
+.DS_Store
+/**/.DS_Store
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+test/
+tz/
+
+# FastAPI specific
+.pytest_cache/
+.coverage
+htmlcov/
