@@ -32,3 +32,8 @@ class UpdateUser(BaseModel):
 class OKResponce(BaseModel):
   ok: bool
   user_id: int
+
+
+class UserLogin(BaseModel):
+  email: str = EMAIL_FIELD
+  password: str = PASSWORD_FIELD

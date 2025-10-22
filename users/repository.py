@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from auth.utils import hash_password
 from db.connection import PsycopgDB
 from db.models import DB
-from users.models import OKResponce, RegisterUser, UpdateUser, User
+from users.models import OKResponce, RegisterUser, UpdateUser, User, UserLogin
 
 
 # todo: should go when switch to sqlalchemy
@@ -93,6 +93,15 @@ class _UsersRepository:
     result = self.db.query_one(f"SELECT user_id FROM {self.table} WHERE email = %s", email)
 
     return bool(result)
+
+
+  def get_user_login_data(self, email: str) -> UserLogin | None:
+    result = self.db.query_one(f"SELECT password FROM {self.table} WHERE email = %s", email)
+
+    if not result:
+      return None
+
+    return UserLogin(email=email, password=result[0])
 
 
 UsersRepository = _UsersRepository(PsycopgDB)
