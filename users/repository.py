@@ -1,9 +1,23 @@
 
+from typing import Any
 from fastapi import HTTPException, status
 from auth.utils import hash_password
 from db.connection import PsycopgDB
 from db.models import DB
-from users.models import OKResponce, RegisterUser, User
+from users.models import OKResponce, RegisterUser, UpdateUser, User
+
+
+# todo: should go when switch to sqlalchemy
+def costyil(data: list[Any]) -> User:
+  return User(
+      user_id=data[0],
+      email=data[1],
+      password=data[2],
+      first_name=data[3],
+      last_name=data[4],
+      is_verified=data[5],
+      created_at=data[6],
+    ) # type: ignore
 
 
 class _UsersRepository:
@@ -41,15 +55,12 @@ class _UsersRepository:
     if not result:
       raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_404_NOT_FOUND)
 
-    return User(
-      user_id=result[0],
-      email=result[1],
-      password=result[2],
-      first_name=result[3],
-      last_name=result[4],
-      is_verified=result[5],
-      created_at=result[6],
-    ) # type: ignore
+    return costyil(result)
+
+
+  def get_all_users(self) -> list[User]:
+    result = self.db.query(f"SELECT * FROM {self.table}")
+    return [costyil(item) for item in result]
 
 
   def delete_user(self, user_id: int) -> OKResponce:
@@ -57,6 +68,23 @@ class _UsersRepository:
 
     if not result:
       raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_400_BAD_REQUEST)
+
+    return OKResponce(ok=True, user_id=result[0])
+
+
+  def update_user(self, user_id: int, user: UpdateUser) -> OKResponce:
+    if user.email:
+      if self.isUserExist(user.email):
+        raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
+
+    raw_values = user.model_dump(exclude_none=True, exclude_defaults=True)
+    columns = ", ".join([f"{column} = %s" for column in raw_values.keys()])
+
+    result = self.db.query_one(
+        f"UPDATE {self.table} SET {columns} WHERE user_id = %s RETURNING {self.return_id}", 
+        *raw_values.values(), 
+        user_id,
+    )
 
     return OKResponce(ok=True, user_id=result[0])
 
