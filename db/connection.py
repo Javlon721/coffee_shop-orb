@@ -29,7 +29,7 @@ class _PsycopgDB(DB):
 
 
   def execute(self, query: str, *args: Any) -> Any: 
-    return self.query_one(query, args)
+    return self.query_one(query, *args)
 
 
 PsycopgDB = _PsycopgDB()
