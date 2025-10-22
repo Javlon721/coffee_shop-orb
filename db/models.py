@@ -13,3 +13,8 @@ class DB(ABC):
   @abstractmethod
   def query_one(self, query: str, *args: Any) -> Any: 
     raise NotImplemented
+
+
+  @abstractmethod
+  def execute(self, query: str, *args: Any) -> Any: 
+    raise NotImplemented
