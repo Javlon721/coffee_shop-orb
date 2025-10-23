@@ -1,21 +1,29 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 
 from auth.models import AccessToken, AccessTokenData
 from auth.utils import create_access_token, decode_token, get_roles_from
+from users.models import User
+from users.repository import UsersRepository
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", refreshUrl="auth/refresh")
 
-credentials_exception = HTTPException(
-  status_code=status.HTTP_401_UNAUTHORIZED,
-  detail="Could not validate credentials",
-  headers={"WWW-Authenticate": "Bearer"},
-)
 
+def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depends(oauth2_scheme)]) -> User:
+  if security_scopes.scopes:
+    authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
+  else:
+    authenticate_value = "Bearer"
 
-def authorize_user(token: Annotated[str, Depends(oauth2_scheme)]) -> AccessTokenData:
+  credentials_exception = \
+    HTTPException( 
+      status_code=status.HTTP_401_UNAUTHORIZED, 
+      detail="Could not validate credentials", 
+      headers={"WWW-Authenticate": authenticate_value},
+    )
+
   try:
     payload = decode_token(token)
     user_id = payload.get("sub")
@@ -23,16 +31,37 @@ def authorize_user(token: Annotated[str, Depends(oauth2_scheme)]) -> AccessToken
     if user_id is None:
       raise credentials_exception
 
-    
     token_roles = get_roles_from(payload)
 
-    return AccessTokenData(sub=user_id, roles=token_roles)
+    token_data = AccessTokenData(sub=user_id, roles=token_roles)
 
   except Exception:
     raise credentials_exception
 
+  assert token_data.sub is not None
+  user = UsersRepository.get_user(token_data.sub)
+
+  if user is None:
+    raise credentials_exception
+
+  for scope in security_scopes.scopes:
+    if scope not in token_data.roles:
+      raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not enough permissions",
+        headers={"WWW-Authenticate": authenticate_value},
+      )
+  return user
+
 
 def renew_access_token(token: Annotated[str, Depends(oauth2_scheme)]) -> AccessToken:
+  credentials_exception = \
+    HTTPException(
+      status_code=status.HTTP_401_UNAUTHORIZED,
+      detail="Could not validate credentials",
+      headers={"WWW-Authenticate": "Bearer"},
+    )
+
   try:
     payload = decode_token(token)
 
