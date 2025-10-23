@@ -49,11 +49,11 @@ class _UsersRepository:
     return OKResponce(ok=True, user_id=result[0])
 
 
-  def get_user(self, user_id: int) -> User:
+  def get_user(self, user_id: int) -> User | None:
     result = self.db.query_one(f"SELECT * FROM {self.table} WHERE user_id = %s", user_id)
 
     if not result:
-      raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_404_NOT_FOUND)
+      return None
 
     return costyil(result)
 

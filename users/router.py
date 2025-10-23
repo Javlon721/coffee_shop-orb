@@ -9,7 +9,12 @@ users_router = APIRouter(prefix="/users", tags=["users"])
 
 @users_router.get('/{user_id}')
 def get_user(user_id: int) -> User:
-  return UsersRepository.get_user(user_id)
+  user = UsersRepository.get_user(user_id)
+
+  if user is None:
+    raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_404_NOT_FOUND)
+
+  return user
 
 
 @users_router.delete('/{user_id}')
