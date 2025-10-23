@@ -16,7 +16,7 @@ def get_all() -> list[UserRoles]:
 
 
 @users_roles_router.get('/{user_id}')
-def get_user_rolles(user_id: int) -> list[UserRole]:
+def get_user_roles(user_id: int) -> list[UserRole]:
   return UsersRolesRepository.get_roles_by(user_id)
 
 

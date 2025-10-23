@@ -14,6 +14,10 @@ class _UsersRolesRepository:
 
   def get_roles_by(self, user_id: int)-> list[UserRole]:
     roles = self.db.query("SELECT r.role FROM users_roles ur JOIN roles r USING (role_id) WHERE ur.user_id = %s", user_id)
+
+    if not roles:
+      return []
+
     return [UserRole(role=role[0]) for role in roles]
 
 
@@ -36,8 +40,6 @@ class _UsersRolesRepository:
       raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="user already has role")
     except Exception as e:
       raise HTTPException(detail=f"some error occured", status_code=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 UsersRolesRepository = _UsersRolesRepository(PsycopgDB)

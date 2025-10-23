@@ -95,17 +95,17 @@ class _UsersRepository:
     return bool(result)
 
 
-  def get_user_login_data(self, email: str) -> UserLogin | None:
-    result = self.db.query_one(f"SELECT password FROM {self.table} WHERE email = %s", email)
+  def get_login_user(self, email: str) -> User | None:
+    result = self.db.query_one(f"SELECT * FROM {self.table} WHERE email = %s", email)
 
     if not result:
       return None
 
-    return UserLogin(email=email, password=result[0])
+    return costyil(result)
 
 
 UsersRepository = _UsersRepository(PsycopgDB)
 
 
-def get_user_credentials(email: str) -> UserLogin | None:
-  return UsersRepository.get_user_login_data(email)
+def get_user_credentials(email: str) -> User | None:
+  return UsersRepository.get_login_user(email)

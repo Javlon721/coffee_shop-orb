@@ -1,17 +1,18 @@
 from typing import Annotated
 from fastapi import APIRouter, HTTPException, status
 
-from auth.dependencies import RenewAccessToken
-from auth.models import AccessToken, Tokens
+from auth.dependencies import AuthorizeUserDepends, RenewAccessToken
+from auth.models import AccessToken, AccessTokenData, Tokens
 from auth.utils import create_access_token, create_refresh_token, verify_password
-from users.models import RegisterUser, OKResponce, UserLogin
+from users.models import RegisterUser, OKResponce, User, UserLogin
 from users.repository import UsersRepository, get_user_credentials
+from users_roles.repository import UsersRolesRepository
 
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def authenticate_user(user: UserLogin) -> UserLogin | None:
+def authenticate_user(user: UserLogin) -> User | None:
   user_credential = get_user_credentials(user.email)
   
   if not user_credential:
@@ -21,6 +22,15 @@ def authenticate_user(user: UserLogin) -> UserLogin | None:
     return None
 
   return user_credential
+
+
+def get_user_roles(user_id: int) -> str:
+  roles = UsersRolesRepository.get_roles_by(user_id)
+  
+  if not roles:
+    return ""
+  
+  return " ".join([role.role for role in roles])
 
 
 @auth_router.post("/signup")
@@ -35,8 +45,9 @@ def login(user: UserLogin) -> Tokens:
   if not user_credentials:
     raise HTTPException(detail=f"invalid user credentials", status_code=status.HTTP_403_FORBIDDEN)
 
-  # todo: need to use user_id instead + add user_roles
-  data = {"sub": user_credentials.email}
+  user_roles = get_user_roles(user_credentials.user_id)
+
+  data = {"sub": str(user_credentials.user_id), "roles": user_roles}
   
   access_token = create_access_token(data)
   refresh_token = create_refresh_token(data)
@@ -47,3 +58,8 @@ def login(user: UserLogin) -> Tokens:
 @auth_router.post("/refresh")
 def refresh(new_access_token: Annotated[AccessToken, RenewAccessToken]):
   return new_access_token
+
+
+@auth_router.get("/test")
+def test(token: Annotated[AccessTokenData, AuthorizeUserDepends]):
+  return token

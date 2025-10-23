@@ -17,8 +17,8 @@ class Tokens(AccessToken, RefreshTokens):
 
 
 class AccessTokenData(BaseModel):
-  sub: str | None = None
-  # user_roles: list[str] = []
+  sub: int | None = None
+  roles: list[str] = []
 
 
 class RefreshTokenData(AccessTokenData):

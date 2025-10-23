@@ -59,3 +59,9 @@ def decode_token(token: str) -> dict[str, Any]:
 
 def get_expiration_time(expires_delta: timedelta) -> datetime:
   return datetime.now(timezone.utc) + expires_delta
+
+
+def get_roles_from(encoded_data: dict[str, str]) -> list[str]:
+  roles = encoded_data.get("roles", "")
+  
+  return roles.split(" ")
