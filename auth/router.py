@@ -58,8 +58,3 @@ def login(user: UserLogin) -> Tokens:
 @auth_router.post("/refresh")
 def refresh(new_access_token: Annotated[AccessToken, Depends(renew_access_token)]):
   return new_access_token
-
-
-@auth_router.get("/test")
-def test(user: Annotated[User, Security(get_current_user, scopes=["admin"])]):
-  return user

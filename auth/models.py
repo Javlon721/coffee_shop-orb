@@ -1,4 +1,5 @@
 
+from enum import StrEnum
 from pydantic import BaseModel
 
 
@@ -23,3 +24,8 @@ class AccessTokenData(BaseModel):
 
 class RefreshTokenData(AccessTokenData):
   is_refresh: bool = False
+
+
+class AvailableRoles(StrEnum):
+  ADMIN = "admin"
+  USER = "user"

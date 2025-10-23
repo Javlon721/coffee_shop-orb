@@ -1,5 +1,6 @@
 
 from datetime import datetime
+from typing import Annotated
 from pydantic import BaseModel, Field
 
 
@@ -22,9 +23,14 @@ class User(RegisterUser):
   is_verified: bool
 
 
+class UserWithRoles(BaseModel):
+  user: User
+  roles: list[str]
+
+
 class UpdateUser(BaseModel):
-  email: str | None = EMAIL_FIELD
-  password: str | None = PASSWORD_FIELD
+  email: Annotated[str | None, EMAIL_FIELD] = None
+  password: Annotated[str | None, PASSWORD_FIELD] = None
   first_name: str | None =  Field(default=None, max_length=50)
   last_name: str | None =  Field(default=None, max_length=50)
 

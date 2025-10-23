@@ -1,17 +1,17 @@
 from typing import Annotated
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 
-from auth.models import AccessToken, AccessTokenData
+from auth.models import AccessToken, AccessTokenData, AvailableRoles
 from auth.utils import create_access_token, decode_token, get_roles_from
-from users.models import User
+from users.models import UserWithRoles
 from users.repository import UsersRepository
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", refreshUrl="auth/refresh")
 
 
-def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depends(oauth2_scheme)]) -> User:
+def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depends(oauth2_scheme)]) -> UserWithRoles:
   if security_scopes.scopes:
     authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
   else:
@@ -51,7 +51,7 @@ def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depe
         detail="Not enough permissions",
         headers={"WWW-Authenticate": authenticate_value},
       )
-  return user
+  return UserWithRoles(user=user, roles=token_data.roles)
 
 
 def renew_access_token(token: Annotated[str, Depends(oauth2_scheme)]) -> AccessToken:
@@ -83,3 +83,11 @@ def renew_access_token(token: Annotated[str, Depends(oauth2_scheme)]) -> AccessT
     return AccessToken(access_token=new_access_token, token_type="bearer")
   except Exception:
       raise credentials_exception
+
+
+def is_admin(user: UserWithRoles) -> bool:
+  return AvailableRoles.ADMIN in user.roles
+
+
+AdminDependency = Security(get_current_user, scopes=[AvailableRoles.ADMIN])
+ValidUserDependency = Security(get_current_user, scopes=[])
