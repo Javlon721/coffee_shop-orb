@@ -2,8 +2,9 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 
-from auth.models import AccessToken, AccessTokenData, AvailableRoles
+from auth.models import AccessToken, AccessTokenData
 from auth.utils import create_access_token, decode_token, get_roles_from
+from roles.models import AvailableRoles
 from users.models import UserWithRoles
 from users.repository import UsersRepository
 
