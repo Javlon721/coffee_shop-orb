@@ -1,6 +1,7 @@
 
 
 from datetime import timedelta, datetime, timezone
+import secrets
 from typing import Any
 import jwt
 from pwdlib import PasswordHash
@@ -65,3 +66,11 @@ def get_roles_from(encoded_data: dict[str, str]) -> list[str]:
   roles = encoded_data.get("roles", "")
   
   return roles.split(" ")
+
+
+def generate_verification_token() -> str:
+    return secrets.token_urlsafe(AuthConfig.VERIFICATION_TOKEN_BITES_LEN)
+
+
+def generate_verification_link(base_url: str, token: str):
+  return f"{base_url}/{AuthConfig.VERIFICATION_ENDPOINT_PATH}?token={token}"

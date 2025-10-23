@@ -1,12 +1,14 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 
-from auth.dependencies import renew_access_token, get_current_user
-from auth.models import AccessToken, AccessTokenData, Tokens
-from auth.utils import create_access_token, create_refresh_token, verify_password
+from auth.dependencies import renew_access_token
+from auth.models import AccessToken, Tokens
+from auth.utils import create_access_token, create_refresh_token, generate_verification_link, verify_password
+from auth.verification.repository import VerificationRepository
 from users.models import RegisterUser, OKResponce, User, UserLogin
 from users.repository import UsersRepository, get_user_credentials
 from users_roles.repository import UsersRolesRepository
+from utils.utils import pretty_print
 
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
@@ -33,9 +35,27 @@ def get_user_roles(user_id: int) -> str:
   return " ".join([role.role for role in roles])
 
 
+def send_verification_link(user_id: int, req: Request):
+  token = VerificationRepository.add(user_id)
+
+  if token is None:
+    raise HTTPException(detail=f"some errors occured", status_code=status.HTTP_400_BAD_REQUEST)
+
+  base_url = str(req.base_url).rstrip('/')
+  verification_link = generate_verification_link(base_url, token)
+
+  pretty_print("VERIFICATION LINK ->", verification_link, sep_cnt=30)
+
+  return verification_link
+
+
 @auth_router.post("/signup")
-def signup(user: RegisterUser) -> OKResponce:
-  return UsersRepository.create(user)
+def signup(user: RegisterUser, background_tasks: BackgroundTasks, req: Request) -> OKResponce:
+  result = UsersRepository.create(user)
+
+  background_tasks.add_task(send_verification_link, result.user_id, req)
+
+  return result
 
 
 @auth_router.post("/login")
