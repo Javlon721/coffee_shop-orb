@@ -1,7 +1,7 @@
 from typing import Annotated
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from auth.dependencies import AuthorizeUserDepends, RenewAccessToken
+from auth.dependencies import renew_access_token, authorize_user
 from auth.models import AccessToken, AccessTokenData, Tokens
 from auth.utils import create_access_token, create_refresh_token, verify_password
 from users.models import RegisterUser, OKResponce, User, UserLogin
@@ -56,10 +56,10 @@ def login(user: UserLogin) -> Tokens:
 
 
 @auth_router.post("/refresh")
-def refresh(new_access_token: Annotated[AccessToken, RenewAccessToken]):
+def refresh(new_access_token: Annotated[AccessToken, Depends(renew_access_token)]):
   return new_access_token
 
 
 @auth_router.get("/test")
-def test(token: Annotated[AccessTokenData, AuthorizeUserDepends]):
+def test(token: Annotated[AccessTokenData, Depends(authorize_user)]):
   return token

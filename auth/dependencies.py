@@ -54,7 +54,3 @@ def renew_access_token(token: Annotated[str, Depends(oauth2_scheme)]) -> AccessT
     return AccessToken(access_token=new_access_token, token_type="bearer")
   except Exception:
       raise credentials_exception
-
-
-AuthorizeUserDepends = Depends(authorize_user)
-RenewAccessToken = Depends(renew_access_token)
