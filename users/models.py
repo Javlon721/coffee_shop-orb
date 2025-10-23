@@ -6,13 +6,16 @@ from pydantic import BaseModel, Field
 
 EMAIL_FIELD = Field(max_length=150, pattern=r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 PASSWORD_FIELD = Field(min_length=5, max_length=150)
+NAME_FIELD = Field(max_length=50)
+
 
 class RegisterUser(BaseModel):
-  email: str = EMAIL_FIELD
-  password: str = PASSWORD_FIELD
-  first_name: str | None =  Field(default=None, max_length=50)
-  last_name: str | None =  Field(default=None, max_length=50)
-  
+  email: Annotated[str, EMAIL_FIELD]
+  password:  Annotated[str, PASSWORD_FIELD]
+  first_name: Annotated[str | None, NAME_FIELD] = None
+  last_name: Annotated[str | None, NAME_FIELD] = None
+
+
   def set_hashed_password(self, hashed_password: str)->None:
     self.password = hashed_password
 
@@ -31,8 +34,8 @@ class UserWithRoles(BaseModel):
 class UpdateUser(BaseModel):
   email: Annotated[str | None, EMAIL_FIELD] = None
   password: Annotated[str | None, PASSWORD_FIELD] = None
-  first_name: str | None =  Field(default=None, max_length=50)
-  last_name: str | None =  Field(default=None, max_length=50)
+  first_name: Annotated[str | None, NAME_FIELD] = None
+  last_name: Annotated[str | None, NAME_FIELD] = None
 
 
 class OKResponce(BaseModel):
@@ -41,5 +44,5 @@ class OKResponce(BaseModel):
 
 
 class UserLogin(BaseModel):
-  email: str = EMAIL_FIELD
-  password: str = PASSWORD_FIELD
+  email: Annotated[str, EMAIL_FIELD]
+  password:  Annotated[str, PASSWORD_FIELD]
