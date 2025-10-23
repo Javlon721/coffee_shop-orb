@@ -1,6 +1,7 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
+from jwt import ExpiredSignatureError
 
 from auth.models import AccessToken, AccessTokenData
 from auth.utils import create_access_token, decode_token, get_roles_from
@@ -36,6 +37,8 @@ def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depe
 
     token_data = AccessTokenData(sub=user_id, roles=token_roles)
 
+  except ExpiredSignatureError:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Access token expired")
   except Exception:
     raise credentials_exception
 
@@ -82,6 +85,8 @@ def renew_access_token(token: Annotated[str, Depends(oauth2_scheme)]) -> AccessT
     new_access_token = create_access_token(new_access_token_data.model_dump())
 
     return AccessToken(access_token=new_access_token, token_type="bearer")
+  except ExpiredSignatureError:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Refresh token expired")
   except Exception:
       raise credentials_exception
 
