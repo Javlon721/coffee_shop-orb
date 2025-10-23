@@ -105,3 +105,7 @@ class _UsersRepository:
 
 
 UsersRepository = _UsersRepository(PsycopgDB)
+
+
+def get_user_credentials(email: str) -> UserLogin | None:
+  return UsersRepository.get_user_login_data(email)

@@ -5,7 +5,7 @@ from auth.dependencies import RenewAccessToken
 from auth.models import AccessToken, Tokens
 from auth.utils import create_access_token, create_refresh_token, verify_password
 from users.models import RegisterUser, OKResponce, UserLogin
-from users.repository import UsersRepository
+from users.repository import UsersRepository, get_user_credentials
 
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
@@ -21,10 +21,6 @@ def authenticate_user(user: UserLogin) -> UserLogin | None:
     return None
 
   return user_credential
-
-
-def get_user_credentials(email: str) -> UserLogin | None:
-  return UsersRepository.get_user_login_data(email)
 
 
 @auth_router.post("/signup")
