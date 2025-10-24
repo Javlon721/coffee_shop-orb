@@ -10,8 +10,11 @@ class _RolesRepository:
     self.db = db
 
 
-  def get_roles(self) -> list[Role]:
+  def get_roles(self) -> list[Role] | None:
     roles = self.db.query("SELECT * FROM roles")
+
+    if not roles:
+      return None
 
     return [Role(role_id=role[0], role=role[1]) for role in roles]
 
