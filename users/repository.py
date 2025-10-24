@@ -73,6 +73,11 @@ class _UsersRepository:
 
 
   def update_user(self, user_id: int, user: UpdateUser) -> OKResponce:
+    db_user = self.get_user(user_id)
+
+    if db_user is None:
+      raise HTTPException(detail=f"user {user_id} not exists", status_code=status.HTTP_404_NOT_FOUND)
+
     if user.email:
       if self.isUserExist(user.email):
         raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
