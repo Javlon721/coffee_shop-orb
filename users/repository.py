@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from auth.utils import hash_password
 from db.connection import PsycopgDB
 from db.models import DB
-from users.models import OKResponce, RegisterUser, UpdateUser, User, UserLogin
+from users.models import OKResponce, RegisterUser, UpdateUser, User
 
 
 # todo: should go when switch to sqlalchemy
@@ -30,9 +30,9 @@ class _UsersRepository:
     self.db = db
 
 
-  def create(self, user: RegisterUser) -> OKResponce:
+  def create(self, user: RegisterUser) -> OKResponce | None:
     if self.isUserExist(user.email):
-      raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
+      return None
 
     hashed_password = hash_password(user.password)
     user.set_hashed_password(hashed_password)
@@ -58,16 +58,20 @@ class _UsersRepository:
     return costyil(result)
 
 
-  def get_all_users(self) -> list[User]:
+  def get_all_users(self) -> list[User] | None:
     result = self.db.query(f"SELECT * FROM {self.table}")
+
+    if not result:
+      return None
+
     return [costyil(item) for item in result]
 
 
-  def delete_user(self, user_id: int) -> OKResponce:
+  def delete_user(self, user_id: int) -> OKResponce | None:
     result = self.db.query_one(f"DELETE FROM {self.table} WHERE user_id = %s RETURNING {self.return_id}", user_id)
 
-    if not result:
-      raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_400_BAD_REQUEST)
+    if result is None:
+      return None
 
     return OKResponce(ok=True, user_id=result[0])
 

@@ -26,12 +26,22 @@ def get_user(user_id: int) -> User:
 
 @users_router.delete('/{user_id}', dependencies=[AdminDependency])
 def delete_user(user_id: int) -> OKResponce:
-  return UsersRepository.delete_user(user_id)
+  result = UsersRepository.delete_user(user_id)
+
+  if result is None:
+    raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_400_BAD_REQUEST)
+
+  return result
 
 
 @users_router.get('/', dependencies=[AdminDependency])
 def get_all_users() -> list[User]:
-  return UsersRepository.get_all_users()
+  result = UsersRepository.get_all_users()
+
+  if result is None:
+    raise HTTPException(detail=f"users not found", status_code=status.HTTP_404_NOT_FOUND)
+
+  return result
 
 
 @users_router.patch('/{user_id}')
