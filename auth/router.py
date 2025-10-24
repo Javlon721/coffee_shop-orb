@@ -87,7 +87,7 @@ def login(user: UserLogin) -> Tokens:
 
   user_roles = get_user_roles(user_credentials.user_id)
 
-  data = {"sub": str(user_credentials.user_id), "roles": user_roles}
+  data = {"user_id": user_credentials.user_id, "roles": user_roles}
   
   access_token = create_access_token(data)
   refresh_token = create_refresh_token(data)

@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 
 
 class AccessToken(BaseModel):
@@ -17,8 +17,12 @@ class Tokens(AccessToken, RefreshTokens):
 
 
 class AccessTokenData(BaseModel):
-  sub: int | None = None
+  user_id: int | None = None
   roles: list[str] = []
+
+  @field_serializer("roles")
+  def serialize_roles(self, roles: list[str]) -> str:
+    return ' '.join(roles)
 
 
 class RefreshTokenData(AccessTokenData):

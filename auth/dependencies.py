@@ -28,22 +28,22 @@ def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depe
 
   try:
     payload = decode_token(token)
-    user_id = payload.get("sub")
+    user_id = payload.get("user_id")
 
     if user_id is None:
       raise credentials_exception
 
     token_roles = get_roles_from(payload)
 
-    token_data = AccessTokenData(sub=user_id, roles=token_roles)
+    token_data = AccessTokenData(user_id=user_id, roles=token_roles)
 
   except ExpiredSignatureError:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Access token expired")
   except Exception:
     raise credentials_exception
 
-  assert token_data.sub is not None
-  user = UsersRepository.get_user(token_data.sub)
+  assert token_data.user_id is not None
+  user = UsersRepository.get_user(token_data.user_id)
 
   if user is None:
     raise credentials_exception
@@ -69,7 +69,7 @@ def renew_access_token(token: Annotated[str, Depends(oauth2_scheme)]) -> AccessT
   try:
     payload = decode_token(token)
 
-    user_id = payload.get("sub")
+    user_id = payload.get("user_id")
 
     if user_id is None:
       raise credentials_exception
@@ -81,7 +81,7 @@ def renew_access_token(token: Annotated[str, Depends(oauth2_scheme)]) -> AccessT
 
     token_roles = get_roles_from(payload)
 
-    new_access_token_data = AccessTokenData(sub=user_id, roles=token_roles)
+    new_access_token_data = AccessTokenData(user_id=user_id, roles=token_roles)
     new_access_token = create_access_token(new_access_token_data.model_dump())
 
     return AccessToken(access_token=new_access_token, token_type="bearer")
