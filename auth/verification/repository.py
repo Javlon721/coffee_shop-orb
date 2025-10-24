@@ -1,7 +1,7 @@
 from datetime import timedelta
 from auth.config import AuthConfig
 from auth.utils import generate_verification_token, get_expiration_time
-from auth.verification.models import Verification
+from auth.verification.models import Verification, VerificationToken
 from db.connection import PsycopgDB
 from db.models import DB
 
@@ -13,7 +13,7 @@ class _VerificationRepository:
     self.db = db
 
 
-  def add(self, user_id: int) -> str | None:
+  def add(self, user_id: int) -> VerificationToken | None:
     default_time_delta = timedelta(days=AuthConfig.VERIFICATION_TOKEN_EXPIRE_DAYS)
 
     expires_at = get_expiration_time(default_time_delta)
@@ -25,7 +25,7 @@ class _VerificationRepository:
     if not result:
       return None
 
-    return token
+    return VerificationToken(token=token)
 
 
   def get(self, user_id: int) -> Verification | None:

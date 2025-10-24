@@ -2,6 +2,10 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class VerificationToken(BaseModel):
+  token: str
+
+
 class RegisterVerification(BaseModel):
   user_id: int
   token: str
