@@ -1,9 +1,11 @@
 from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 
+from auth.config import AuthConfig
 from auth.dependencies import renew_access_token
 from auth.models import AccessToken, Tokens
 from auth.utils import create_access_token, create_refresh_token, generate_verification_link, verify_password
+from auth.verification.models import VerificationToken
 from auth.verification.repository import VerificationRepository
 from users.models import RegisterUser, OKResponce, User, UserLogin
 from users.repository import UsersRepository, get_user_credentials
@@ -36,13 +38,13 @@ def get_user_roles(user_id: int) -> str:
 
 
 def send_verification_link(user_id: int, req: Request):
-  token = VerificationRepository.add(user_id)
+  v_token = VerificationRepository.add(user_id)
 
-  if token is None:
+  if v_token is None:
     raise HTTPException(detail=f"some errors occured", status_code=status.HTTP_400_BAD_REQUEST)
 
   base_url = str(req.base_url).rstrip('/')
-  verification_link = generate_verification_link(base_url, token)
+  verification_link = generate_verification_link(base_url, v_token.token)
 
   pretty_print("VERIFICATION LINK ->", verification_link, sep_cnt=30)
 
@@ -54,6 +56,21 @@ def signup(user: RegisterUser, background_tasks: BackgroundTasks, req: Request) 
   result = UsersRepository.create(user)
 
   background_tasks.add_task(send_verification_link, result.user_id, req)
+
+  return result
+
+
+@auth_router.post(f"/{AuthConfig.VERIFICATION_ENDPOINT_PATH}")
+def verify(token: VerificationToken) -> OKResponce:
+  verification = VerificationRepository.get(token.token)
+
+  if verification is None:
+    raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_400_BAD_REQUEST)
+
+  result = UsersRepository.verify_user(verification.user_id)
+
+  if result is None:
+    raise HTTPException(detail=f"user already verified", status_code=status.HTTP_400_BAD_REQUEST)
 
   return result
 

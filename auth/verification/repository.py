@@ -28,8 +28,8 @@ class _VerificationRepository:
     return VerificationToken(token=token)
 
 
-  def get(self, user_id: int) -> Verification | None:
-    result = self.db.query_one("select * from verifications where user_id = %s and now() - expires_at > 0", user_id)
+  def get(self, token: str) -> Verification | None:
+    result = self.db.query_one("select * from verifications where token = %s and expires_at > now()", token)
 
     if not result:
       return None
