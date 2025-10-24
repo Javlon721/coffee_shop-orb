@@ -89,6 +89,17 @@ class _UsersRepository:
     return OKResponce(ok=True, user_id=result[0])
 
 
+  def verify_user(self, user_id: int) -> OKResponce | None:
+    result = self.db.query_one(
+      f"UPDATE {self.table} SET is_verified = TRUE WHERE user_id = %s AND NOT is_verified RETURNING user_id", user_id
+    )
+
+    if result is None:
+      return None
+
+    return OKResponce(ok=True, user_id=user_id)
+
+
   def isUserExist(self, email: str) -> bool:
     result = self.db.query_one(f"SELECT user_id FROM {self.table} WHERE email = %s", email)
 
