@@ -12,18 +12,21 @@ class _UsersRolesRepository:
     self.db = db
 
 
-  def get_roles_by(self, user_id: int)-> list[UserRole]:
+  def get_roles_by(self, user_id: int)-> list[UserRole] | None:
     roles = self.db.query("SELECT r.role FROM users_roles ur JOIN roles r USING (role_id) WHERE ur.user_id = %s", user_id)
 
     if not roles:
-      return []
+      return None
 
     return [UserRole(role=role[0]) for role in roles]
 
 
-  def get_all(self) -> list[UserRoles]:
+  def get_all(self) -> list[UserRoles] | None:
     data = self.db.query("select * from users_roles")
-    
+
+    if not data:
+      return None
+
     return [UserRoles(id=el[0], user_id=el[1], role_id=el[2], created_at=el[3]) for el in data]
 
 
