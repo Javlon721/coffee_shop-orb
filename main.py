@@ -1,21 +1,40 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from typing import Annotated
+from fastapi import Depends, FastAPI
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from users.repository import UsersRepository
+from users.repository import UsersRepositoryNew
 from users.router import users_router
-from auth.router import auth_router
+from auth.router import auth_router, auth_router_new
 from users_roles.router import users_roles_router
 from roles.router import roles_router
+from db.connection import ConnectionManager
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+  # await create_db_tables()
+
+  async with ConnectionManager.get_session_ctx() as session:
+    await UsersRepositoryNew.truncate_table(session)
+
+  yield
+
+  print("do clean up")
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 app.include_router(auth_router)
+app.include_router(auth_router_new)
 app.include_router(users_router)
 app.include_router(users_roles_router)
 app.include_router(roles_router)
 
 
 @app.get('/test')
-def test():
-  return UsersRepository.get_user(1)
+async def test(session: Annotated[AsyncSession, Depends(ConnectionManager.get_session)]):
+    result = await session.execute(text("select now()"))
+    return result.scalar_one()

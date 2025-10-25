@@ -1,4 +1,5 @@
 from typing import Annotated
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 
 from auth.config import AuthConfig
@@ -7,13 +8,15 @@ from auth.models import AccessToken, Tokens
 from auth.utils import create_access_token, create_refresh_token, generate_verification_link, verify_password
 from auth.verification.models import VerificationToken
 from auth.verification.repository import VerificationRepository
+from db.connection import AsyncSessionDepends
 from users.models import RegisterUser, OKResponce, User, UserLogin
-from users.repository import UsersRepository, get_user_credentials
+from users.repository import UsersRepository, UsersRepositoryNew, get_user_credentials
 from users_roles.repository import UsersRolesRepository
 from utils.utils import pretty_print
 
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
+auth_router_new = APIRouter(prefix="/v2/auth", tags=["auth"])
 
 
 def authenticate_user(user: UserLogin) -> User | None:
@@ -59,6 +62,18 @@ def signup(user: RegisterUser, background_tasks: BackgroundTasks, req: Request) 
     raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
 
   background_tasks.add_task(send_verification_link, result.user_id, req)
+
+  return result
+
+
+@auth_router_new.post("/signup")
+async def signup_new(user: RegisterUser, background_tasks: BackgroundTasks, req: Request, session: AsyncSessionDepends):
+  result = await UsersRepositoryNew.create_user(session, user)
+
+  if result is None:
+    raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
+
+  # background_tasks.add_task(send_verification_link, result.user_id, req)
 
   return result
 

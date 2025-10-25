@@ -1,10 +1,15 @@
 
 from typing import Any
+
 from fastapi import HTTPException, status
+from sqlalchemy import insert, text, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from auth.utils import hash_password
 from db.connection import PsycopgDB
 from db.models import DB
-from users.models import OKResponce, RegisterUser, UpdateUser, User
+from users.models import OKResponce, RegisterUser, UpdateUser, User, UsersORM
+from utils.utils import pretty_print
 
 
 # todo: should go when switch to sqlalchemy
@@ -129,3 +134,37 @@ UsersRepository = _UsersRepository(PsycopgDB)
 
 def get_user_credentials(email: str) -> User | None:
   return UsersRepository.get_login_user(email)
+
+
+class UsersRepositoryNew:
+
+  @staticmethod
+  async def create_user(session: AsyncSession, user: RegisterUser) -> OKResponce | None:
+    if await UsersRepositoryNew.isUserExist(session, user.email):
+      return None
+
+    stmt = insert(UsersORM).values(**user.model_dump()).returning(UsersORM.user_id)
+
+    result = await session.execute(stmt)
+
+    await session.commit()
+
+    return OKResponce(ok=True, user_id=result.scalar_one())
+
+
+  @staticmethod
+  async def isUserExist(session: AsyncSession, email: str) -> bool:
+    query = select(UsersORM.user_id).filter_by(email=email)
+
+    result = await session.scalars(query)
+
+    if result.first() is None:
+      return False
+
+    return True
+
+
+  @staticmethod
+  async def truncate_table(session: AsyncSession):
+    await session.execute(text("TRUNCATE TABLE users RESTART IDENTITY CASCADE"))
+    await session.commit()
