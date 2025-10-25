@@ -12,7 +12,7 @@ from auth.verification.repository import VerificationRepository
 from db.connection import AsyncSessionDepends
 from users.models import RegisterUser, OKResponce, User, UserLogin
 from users.repository import UsersRepository, UsersRepositoryNew
-from users_roles.repository import UsersRolesRepository
+from users_roles.repository import UsersRolesRepositoryNew
 from utils.utils import pretty_print
 
 
@@ -32,8 +32,8 @@ async def authenticate_user(session: AsyncSession, user: UserLogin) -> User | No
   return user_credential
 
 
-def get_user_roles(user_id: int) -> str:
-  roles = UsersRolesRepository.get_roles_by(user_id)
+async def get_user_roles(session: AsyncSession, user_id: int) -> str:
+  roles = await UsersRolesRepositoryNew.get_roles_by(session, user_id)
   
   if not roles:
     return ""
@@ -117,7 +117,7 @@ async def login(user: UserLogin, session: AsyncSessionDepends) -> Tokens:
   if not user_credentials:
     raise HTTPException(detail=f"invalid user credentials", status_code=status.HTTP_403_FORBIDDEN)
 
-  user_roles = get_user_roles(user_credentials.user_id)
+  user_roles = get_user_roles(session, user_credentials.user_id)
 
   data = {"user_id": user_credentials.user_id, "roles": user_roles}
   
