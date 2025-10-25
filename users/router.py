@@ -2,11 +2,13 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, status
 
 from auth.dependencies import AdminDependency, ValidUserDependency, is_admin
+from db.connection import AsyncSessionDepends
 from users.models import OKResponce, UpdateUser, User, UserWithRoles
-from users.repository import UsersRepository
+from users.repository import UsersRepository, UsersRepositoryNew
 
 
 users_router = APIRouter(prefix="/users", tags=["users"])
+users_router_new = APIRouter(prefix="/v2/users", tags=["users"])
 
 
 @users_router.get('/me')
@@ -17,6 +19,16 @@ def get_me(user: Annotated[UserWithRoles, ValidUserDependency]) -> User:
 @users_router.get('/{user_id}', dependencies=[AdminDependency])
 def get_user(user_id: int) -> User:
   user = UsersRepository.get_user(user_id)
+
+  if user is None:
+    raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_404_NOT_FOUND)
+
+  return user
+
+
+@users_router_new.get('/{user_id}', dependencies=[])
+async def get_user_new(user_id: int,  session: AsyncSessionDepends) -> User:
+  user = await UsersRepositoryNew.get_user(session, user_id)
 
   if user is None:
     raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_404_NOT_FOUND)
