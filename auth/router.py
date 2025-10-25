@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.config import AuthConfig
 from auth.dependencies import renew_access_token
@@ -10,7 +11,7 @@ from auth.verification.models import VerificationToken
 from auth.verification.repository import VerificationRepository
 from db.connection import AsyncSessionDepends
 from users.models import RegisterUser, OKResponce, User, UserLogin
-from users.repository import UsersRepository, UsersRepositoryNew, get_user_credentials
+from users.repository import UsersRepository, UsersRepositoryNew
 from users_roles.repository import UsersRolesRepository
 from utils.utils import pretty_print
 
@@ -19,8 +20,8 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 auth_router_new = APIRouter(prefix="/v2/auth", tags=["auth"])
 
 
-def authenticate_user(user: UserLogin) -> User | None:
-  user_credential = get_user_credentials(user.email)
+async def authenticate_user(session: AsyncSession, user: UserLogin) -> User | None:
+  user_credential = await UsersRepositoryNew.get_user(session, email=user.email)
   
   if not user_credential:
     return None
@@ -110,8 +111,8 @@ async def verify_new(user_id: int, session: AsyncSessionDepends) -> OKResponce:
 
 
 @auth_router.post("/login")
-def login(user: UserLogin) -> Tokens:
-  user_credentials = authenticate_user(user)
+async def login(user: UserLogin, session: AsyncSessionDepends) -> Tokens:
+  user_credentials = await authenticate_user(session, user)
   
   if not user_credentials:
     raise HTTPException(detail=f"invalid user credentials", status_code=status.HTTP_403_FORBIDDEN)
@@ -127,5 +128,5 @@ def login(user: UserLogin) -> Tokens:
 
 
 @auth_router.post("/refresh")
-def refresh(new_access_token: Annotated[AccessToken, Depends(renew_access_token)]):
+async def refresh(new_access_token: Annotated[AccessToken, Depends(renew_access_token)]):
   return new_access_token
