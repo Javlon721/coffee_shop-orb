@@ -27,8 +27,8 @@ class UsersRolesORM(Base):
   __tablename__ = "users_roles"
 
   id: Mapped[INT_PK]
-  user_id:  Mapped[int] = mapped_column(ForeignKey("users.user_id"))
-  role_id:  Mapped[int] = mapped_column(ForeignKey("roles.role_id"))
+  user_id:  Mapped[int] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"))
+  role_id:  Mapped[int] = mapped_column(ForeignKey("roles.role_id", ondelete="CASCADE"))
   created_at: Mapped[CREATED_AT]
 
   __table_args__ = (UniqueConstraint("user_id", "role_id"), )
