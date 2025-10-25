@@ -12,7 +12,7 @@ from auth.verification.repository import VerificationRepository
 from db.connection import AsyncSessionDepends
 from users.models import RegisterUser, OKResponce, User, UserLogin
 from users.repository import  UsersRepositoryNew
-from users_roles.repository import UsersRolesRepositoryNew
+from users_roles.repository import UsersRolesRepository
 from utils.utils import pretty_print
 
 
@@ -32,7 +32,7 @@ async def authenticate_user(session: AsyncSession, user: UserLogin) -> User | No
 
 
 async def get_user_roles(session: AsyncSession, user_id: int) -> str:
-  roles = await UsersRolesRepositoryNew.get_roles_by(session, user_id)
+  roles = await UsersRolesRepository.get_roles_by(session, user_id)
   
   if not roles:
     return ""
