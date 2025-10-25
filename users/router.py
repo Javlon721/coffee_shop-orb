@@ -56,6 +56,16 @@ def get_all_users() -> list[User]:
   return result
 
 
+@users_router_new.get('/', dependencies=[])
+async def get_all_users_new(session: AsyncSessionDepends) -> list[User]:
+  result = await UsersRepositoryNew.get_users(session)
+
+  if result is None:
+    raise HTTPException(detail=f"users not found", status_code=status.HTTP_404_NOT_FOUND)
+
+  return result
+
+
 @users_router.patch('/{user_id}')
 def update_user(user_id: int, user: UpdateUser, current_user: Annotated[UserWithRoles, ValidUserDependency]) -> OKResponce:
   if not is_admin(current_user):

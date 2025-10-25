@@ -165,6 +165,18 @@ class UsersRepositoryNew:
 
 
   @staticmethod
+  async def get_users(session: AsyncSession) -> list[User] | None:
+    query = select(UsersORM)
+
+    data = await session.scalars(query)
+
+    if data is None:
+      return None
+
+    return [User.model_validate(el, from_attributes=True) for el in data]
+
+
+  @staticmethod
   async def isUserExist(session: AsyncSession, email: str) -> bool:
     query = select(UsersORM.user_id).filter_by(email=email)
 
