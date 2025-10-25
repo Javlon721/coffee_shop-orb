@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from roles.repository import RolesRepository
 from users.repository import UsersRepositoryNew
-from users.router import users_router, users_router_new
+from users.router import users_router
 from auth.router import auth_router
 from users_roles.router import users_roles_router
 from roles.router import roles_router
@@ -33,7 +33,6 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(auth_router)
 
 app.include_router(users_router)
-app.include_router(users_router_new)
 
 app.include_router(users_roles_router)
 app.include_router(roles_router)
