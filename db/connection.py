@@ -1,6 +1,8 @@
 from typing import Any
 from psycopg_pool import ConnectionPool
 
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+
 from db.config import DBConfig
 from db.models import DB
 
@@ -33,3 +35,12 @@ class _PsycopgDB(DB):
 
 
 PsycopgDB = _PsycopgDB()
+
+engine = create_async_engine(
+  DBConfig.DNS,  
+  echo=DBConfig.ORM_ECHO, 
+  pool_size=DBConfig.CONNECTION_POOL_SIZE, 
+  max_overflow=DBConfig.CONNECTION_POOL_MAX_SIZE
+)
+
+session_factory = async_sessionmaker(engine)
