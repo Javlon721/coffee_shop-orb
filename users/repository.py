@@ -217,6 +217,24 @@ class UsersRepositoryNew:
     return OKResponce(ok=True, user_id=result)
 
 
+  @staticmethod
+  async def verify_user(session: AsyncSession, user_id: int) -> OKResponce | None:
+    stmt = (
+      update(UsersORM)
+      .values(is_verified=True)
+      .filter_by(user_id=user_id, is_verified=False)
+      .returning(UsersORM.user_id)
+    )
+
+    result = await session.scalar(stmt)
+
+    await session.commit()
+
+    if result is None:
+      return None
+
+    return OKResponce(ok=True, user_id=result)
+
 
   @staticmethod
   async def isUserExist(session: AsyncSession, **kwrgs) -> bool:

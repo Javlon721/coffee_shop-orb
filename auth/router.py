@@ -93,6 +93,22 @@ def verify(token: VerificationToken) -> OKResponce:
   return result
 
 
+@auth_router_new.post(f"/{AuthConfig.VERIFICATION_ENDPOINT_PATH}")
+async def verify_new(user_id: int, session: AsyncSessionDepends) -> OKResponce:
+  # verification = VerificationRepository.get(token.token)
+
+  # if verification is None:
+  #   raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_400_BAD_REQUEST)
+
+  result = await UsersRepositoryNew.verify_user(session, user_id)
+
+  if result is None:
+    raise HTTPException(detail=f"user already verified", status_code=status.HTTP_400_BAD_REQUEST)
+
+  return result
+
+
+
 @auth_router.post("/login")
 def login(user: UserLogin) -> Tokens:
   user_credentials = authenticate_user(user)
