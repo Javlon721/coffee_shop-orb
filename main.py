@@ -4,11 +4,13 @@ from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from roles.repository import RolesRepository
+from users.repository import UsersRepositoryNew
 from users.router import users_router, users_router_new
 from auth.router import auth_router, auth_router_new
 from users_roles.router import users_roles_router
 from roles.router import roles_router
-from db.connection import ConnectionManager
+from db.connection import ConnectionManager, create_db_tables
 
 
 @asynccontextmanager
@@ -17,6 +19,7 @@ async def lifespan(app: FastAPI):
 
   async with ConnectionManager.get_session_ctx() as session:
     # await UsersRepositoryNew.truncate_table(session)
+    # await RolesRepository.insert_default_roles(session)
     pass
 
   yield

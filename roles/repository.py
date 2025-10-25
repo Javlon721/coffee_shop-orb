@@ -1,24 +1,25 @@
-from db.connection import PsycopgDB
-from db.models import DB
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from roles.models import Role
-
-
-class _RolesRepository:
-
-  def __init__(self, db: DB):
-    self.db = db
+from roles.models import AvailableRoles, Role, RolesORM
 
 
-  def get_roles(self) -> list[Role] | None:
-    roles = self.db.query("SELECT * FROM roles")
+class RolesRepository:
 
-    if not roles:
+  @staticmethod
+  async def get_roles(session: AsyncSession) -> list[Role] | None:
+    query = select(RolesORM)
+
+    res = await session.scalars(query)
+    result = res.all()
+    
+    if not result:
       return None
 
-    return [Role(role_id=role[0], role=role[1]) for role in roles]
+    return [Role.model_validate(role, from_attributes=True) for role in result]
 
 
-
-
-RolesRepository = _RolesRepository(PsycopgDB)
+  @staticmethod
+  async def insert_default_roles(session: AsyncSession) -> None:
+    session.add_all([RolesORM(role=role) for role in AvailableRoles])
+    await session.commit()
