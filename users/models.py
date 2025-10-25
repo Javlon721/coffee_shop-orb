@@ -2,6 +2,10 @@
 from datetime import datetime
 from typing import Annotated
 from pydantic import BaseModel, Field
+from sqlalchemy import text
+from sqlalchemy.orm import Mapped, mapped_column
+
+from db.models import CREATED_AT, INT_PK, Base
 
 
 EMAIL_FIELD = Field(max_length=150, pattern=r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -46,3 +50,15 @@ class OKResponce(BaseModel):
 class UserLogin(BaseModel):
   email: Annotated[str, EMAIL_FIELD]
   password:  Annotated[str, PASSWORD_FIELD]
+
+
+class UsersORM(Base):
+  __tablename__ = "users"
+  
+  user_id: Mapped[INT_PK]
+  email: Mapped[str]
+  password: Mapped[str]
+  first_name: Mapped[str | None]
+  last_name: Mapped[str | None]
+  created_at: Mapped[CREATED_AT]
+  is_verified: Mapped[bool] = mapped_column(server_default=text("FALSE"))

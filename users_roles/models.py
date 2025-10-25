@@ -1,6 +1,10 @@
 
 from datetime import datetime
 from pydantic import BaseModel
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey
+
+from db.models import CREATED_AT, INT_PK, Base
 
 
 class RegisterUserRole(BaseModel):
@@ -16,3 +20,12 @@ class UserRoles(RegisterUserRole):
 class OKResponce(BaseModel):
   ok: bool
   id: int
+
+
+class UsersRolesORM(Base):
+  __tablename__ = "users_roles"
+
+  id: Mapped[INT_PK]
+  user_id:  Mapped[int] = mapped_column(ForeignKey("users.user_id"))
+  role_id:  Mapped[int] = mapped_column(ForeignKey("roles.role_id"))
+  created_at: Mapped[CREATED_AT]
