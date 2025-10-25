@@ -9,7 +9,7 @@ from roles.repository import RolesRepository
 roles_router = APIRouter(prefix="/roles", tags=["roles"])
 
 
-@roles_router.get('/', dependencies=[])
+@roles_router.get('/', dependencies=[AdminDependency])
 async def get_all_roles(session: AsyncSessionDepends)->list[Role]:
   result = await RolesRepository.get_roles(session)
 
