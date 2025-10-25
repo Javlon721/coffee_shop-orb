@@ -5,7 +5,8 @@ from sqlalchemy import insert, select
 from sqlalchemy.orm import aliased
 from sqlalchemy.exc import IntegrityError
 
-from roles.models import RolesORM, UserRole
+from roles.models import AvailableRoles, RolesORM, UserRole
+from roles.repository import RolesRepository
 from users_roles.models import OKResponce, RegisterUserRole, UserRoles, UsersRolesORM
 
 
@@ -61,3 +62,14 @@ class UsersRolesRepository:
           raise
     except Exception:
       raise HTTPException(detail=f"some error occured", status_code=status.HTTP_400_BAD_REQUEST)
+
+
+  @staticmethod
+  async def add_default_user_role(session: AsyncSession, user_id: int) -> OKResponce | None:
+    default_user_role = AvailableRoles.USER
+
+    resp = await RolesRepository.get_role(session, default_user_role)
+
+    assert resp is not None
+
+    await UsersRolesRepository.add(session, RegisterUserRole(user_id=user_id, role_id=resp.role_id))

@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from roles.models import AvailableRoles, Role, RolesORM
+from roles.models import AvailableRoles, OKResponce, Role, RolesORM
 
 
 class RolesRepository:
@@ -23,3 +23,15 @@ class RolesRepository:
   async def insert_default_roles(session: AsyncSession) -> None:
     session.add_all([RolesORM(role=role) for role in AvailableRoles])
     await session.commit()
+
+
+  @staticmethod
+  async def get_role(session: AsyncSession, role: AvailableRoles) -> OKResponce | None:
+    query = select(RolesORM.role_id).filter_by(role=role)
+
+    result = await session.scalar(query)
+
+    if not result:
+      return None
+
+    return OKResponce(ok=True, role_id=result)

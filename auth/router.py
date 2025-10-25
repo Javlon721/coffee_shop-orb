@@ -12,6 +12,7 @@ from auth.verification.repository import VerificationRepository
 from db.connection import AsyncSessionDepends
 from users.models import RegisterUser, OKResponce, User, UserLogin
 from users.repository import  UsersRepository
+from users_roles.models import RegisterUserRole
 from users_roles.repository import UsersRolesRepository
 from utils.utils import pretty_print
 
@@ -62,6 +63,7 @@ async def signup(user: RegisterUser, background_tasks: BackgroundTasks, req: Req
     raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
 
   background_tasks.add_task(send_verification_link, session, result.user_id, req)
+  background_tasks.add_task(UsersRolesRepository.add_default_user_role, session, result.user_id)
 
   return result
 
