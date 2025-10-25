@@ -1,41 +1,48 @@
 from datetime import timedelta
+
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert
+
+
 from auth.config import AuthConfig
-from auth.utils import generate_verification_token, get_expiration_time
-from auth.verification.models import Verification, VerificationToken
-from db.connection import PsycopgDB
-from db.models import DB
+from auth.utils import generate_verification_token, get_expiration_time, get_utc_time
+from auth.verification.models import Verification, VerificationToken, VerificationsORM
 
 
-
-class _VerificationRepository:
-
-  def __init__(self, db: DB):
-    self.db = db
-
-
-  def add(self, user_id: int) -> VerificationToken | None:
+class VerificationRepository:
+  
+  @staticmethod
+  async def add(session: AsyncSession, user_id: int) -> VerificationToken | None:
     default_time_delta = timedelta(days=AuthConfig.VERIFICATION_TOKEN_EXPIRE_DAYS)
 
     expires_at = get_expiration_time(default_time_delta)
     token = generate_verification_token()
-    result = self.db.query_one(
-      "insert into verifications(user_id, token, expires_at) values (%s, %s, %s) returning id", user_id, token, expires_at
+
+    stmt = (
+      insert(VerificationsORM)
+      .values(user_id=user_id, token=token, expires_at=expires_at)
+      .returning(VerificationsORM.id)
     )
 
-    if not result:
+    result = await session.scalar(stmt)
+
+    await session.commit()
+
+    if result is None:
       return None
 
     return VerificationToken(token=token)
 
+  @staticmethod
+  async def get(session: AsyncSession, token: str) -> Verification | None:
+    now = get_utc_time()
 
-  def get(self, token: str) -> Verification | None:
-    result = self.db.query_one("select * from verifications where token = %s and expires_at > now()", token)
+    query = select(VerificationsORM).filter(and_(VerificationsORM.token==token, VerificationsORM.expires_at >= now))
 
-    if not result:
+    data = await session.scalar(query)
+
+    if data is None:
       return None
 
-    return Verification(id=result[0], user_id=result[1], token=result[2], expires_at=result[3])
-
-
-
-VerificationRepository = _VerificationRepository(PsycopgDB)
+    return Verification.model_validate(data, from_attributes=True)

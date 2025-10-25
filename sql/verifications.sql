@@ -1,6 +1,6 @@
 -- DROP table if EXISTS verifications;
 create table
-  if not exists verifications2 (
+  if not exists verifications (
     id serial primary key,
     user_id int unique,
     token varchar not null,

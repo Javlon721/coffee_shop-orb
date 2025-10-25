@@ -40,8 +40,8 @@ async def get_user_roles(session: AsyncSession, user_id: int) -> str:
   return " ".join([role.role for role in roles])
 
 
-def send_verification_link(user_id: int, req: Request):
-  v_token = VerificationRepository.add(user_id)
+async def send_verification_link(session: AsyncSession, user_id: int, req: Request):
+  v_token = await VerificationRepository.add(session, user_id)
 
   if v_token is None:
     raise HTTPException(detail=f"some errors occured", status_code=status.HTTP_400_BAD_REQUEST)
@@ -61,19 +61,19 @@ async def signup_new(user: RegisterUser, background_tasks: BackgroundTasks, req:
   if result is None:
     raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
 
-  # background_tasks.add_task(send_verification_link, result.user_id, req)
+  background_tasks.add_task(send_verification_link, session, result.user_id, req)
 
   return result
 
 
 @auth_router.post(f"/{AuthConfig.VERIFICATION_ENDPOINT_PATH}")
-async def verify_new(user_id: int, session: AsyncSessionDepends) -> OKResponce:
-  # verification = VerificationRepository.get(token.token)
+async def verify(token: VerificationToken, session: AsyncSessionDepends) -> OKResponce:
+  verification = await VerificationRepository.get(session, token.token)
 
-  # if verification is None:
-  #   raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_400_BAD_REQUEST)
+  if verification is None:
+    raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_400_BAD_REQUEST)
 
-  result = await UsersRepositoryNew.verify_user(session, user_id)
+  result = await UsersRepositoryNew.verify_user(session, verification.user_id)
 
   if result is None:
     raise HTTPException(detail=f"user already verified", status_code=status.HTTP_400_BAD_REQUEST)
