@@ -56,7 +56,7 @@ class UsersORM(Base):
   __tablename__ = "users"
   
   user_id: Mapped[INT_PK]
-  email: Mapped[str]
+  email: Mapped[str] = mapped_column(unique=True)
   password: Mapped[str]
   first_name: Mapped[str | None]
   last_name: Mapped[str | None]
