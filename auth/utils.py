@@ -67,8 +67,11 @@ def get_utc_time() -> datetime:
 
 
 def get_roles_from(encoded_data: dict[str, str]) -> list[str]:
-  roles = encoded_data.get("roles", "")
-  
+  roles = encoded_data.get("roles")
+
+  if roles is None:
+    return []
+
   return roles.split(" ")
 
 
