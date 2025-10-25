@@ -11,13 +11,12 @@ from auth.verification.models import VerificationToken
 from auth.verification.repository import VerificationRepository
 from db.connection import AsyncSessionDepends
 from users.models import RegisterUser, OKResponce, User, UserLogin
-from users.repository import UsersRepository, UsersRepositoryNew
+from users.repository import  UsersRepositoryNew
 from users_roles.repository import UsersRolesRepositoryNew
 from utils.utils import pretty_print
 
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
-auth_router_new = APIRouter(prefix="/v2/auth", tags=["auth"])
 
 
 async def authenticate_user(session: AsyncSession, user: UserLogin) -> User | None:
@@ -56,18 +55,6 @@ def send_verification_link(user_id: int, req: Request):
 
 
 @auth_router.post("/signup")
-def signup(user: RegisterUser, background_tasks: BackgroundTasks, req: Request) -> OKResponce:
-  result = UsersRepository.create(user)
-
-  if result is None:
-    raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
-
-  background_tasks.add_task(send_verification_link, result.user_id, req)
-
-  return result
-
-
-@auth_router_new.post("/signup")
 async def signup_new(user: RegisterUser, background_tasks: BackgroundTasks, req: Request, session: AsyncSessionDepends):
   result = await UsersRepositoryNew.create_user(session, user)
 
@@ -80,21 +67,6 @@ async def signup_new(user: RegisterUser, background_tasks: BackgroundTasks, req:
 
 
 @auth_router.post(f"/{AuthConfig.VERIFICATION_ENDPOINT_PATH}")
-def verify(token: VerificationToken) -> OKResponce:
-  verification = VerificationRepository.get(token.token)
-
-  if verification is None:
-    raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_400_BAD_REQUEST)
-
-  result = UsersRepository.verify_user(verification.user_id)
-
-  if result is None:
-    raise HTTPException(detail=f"user already verified", status_code=status.HTTP_400_BAD_REQUEST)
-
-  return result
-
-
-@auth_router_new.post(f"/{AuthConfig.VERIFICATION_ENDPOINT_PATH}")
 async def verify_new(user_id: int, session: AsyncSessionDepends) -> OKResponce:
   # verification = VerificationRepository.get(token.token)
 
@@ -109,7 +81,6 @@ async def verify_new(user_id: int, session: AsyncSessionDepends) -> OKResponce:
   return result
 
 
-
 @auth_router.post("/login")
 async def login(user: UserLogin, session: AsyncSessionDepends) -> Tokens:
   user_credentials = await authenticate_user(session, user)
@@ -117,7 +88,7 @@ async def login(user: UserLogin, session: AsyncSessionDepends) -> Tokens:
   if not user_credentials:
     raise HTTPException(detail=f"invalid user credentials", status_code=status.HTTP_403_FORBIDDEN)
 
-  user_roles = get_user_roles(session, user_credentials.user_id)
+  user_roles = await get_user_roles(session, user_credentials.user_id)
 
   data = {"user_id": user_credentials.user_id, "roles": user_roles}
   
