@@ -2,7 +2,7 @@
 from typing import Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import insert, text, select
+from sqlalchemy import delete, insert, text, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.utils import hash_password
@@ -174,6 +174,20 @@ class UsersRepositoryNew:
       return None
 
     return [User.model_validate(el, from_attributes=True) for el in data]
+
+
+  @staticmethod
+  async def delete_user(session: AsyncSession, user_id: int) -> OKResponce | None:
+    stmt = delete(UsersORM).filter_by(user_id=user_id).returning(UsersORM.user_id)
+
+    result = await session.scalar(stmt)
+
+    await session.commit()
+
+    if result is None:
+      return None
+
+    return OKResponce(ok=True, user_id=result)
 
 
   @staticmethod

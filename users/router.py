@@ -46,6 +46,16 @@ def delete_user(user_id: int) -> OKResponce:
   return result
 
 
+@users_router_new.delete('/{user_id}', dependencies=[])
+async def delete_user_new(user_id: int, session: AsyncSessionDepends) -> OKResponce:
+  result = await UsersRepositoryNew.delete_user(session, user_id)
+
+  if result is None:
+    raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_400_BAD_REQUEST)
+
+  return result
+
+
 @users_router.get('/', dependencies=[AdminDependency])
 def get_all_users() -> list[User]:
   result = UsersRepository.get_all_users()
