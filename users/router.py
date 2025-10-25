@@ -28,7 +28,7 @@ def get_user(user_id: int) -> User:
 
 @users_router_new.get('/{user_id}', dependencies=[])
 async def get_user_new(user_id: int,  session: AsyncSessionDepends) -> User:
-  user = await UsersRepositoryNew.get_user(session, user_id)
+  user = await UsersRepositoryNew.get_user(session, user_id=user_id)
 
   if user is None:
     raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_404_NOT_FOUND)

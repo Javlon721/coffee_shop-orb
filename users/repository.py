@@ -153,8 +153,8 @@ class UsersRepositoryNew:
 
 
   @staticmethod
-  async def get_user(session: AsyncSession, user_id: int) -> User | None:
-    query = select(UsersORM).filter_by(user_id=user_id)
+  async def get_user(session: AsyncSession, **kwargs) -> User | None:
+    query = select(UsersORM).filter_by(**kwargs)
 
     data = await session.scalar(query)
 
@@ -192,7 +192,7 @@ class UsersRepositoryNew:
 
   @staticmethod
   async def update_user(session: AsyncSession, user_id: int, user: UpdateUser) -> OKResponce:
-    user_in_db = await UsersRepositoryNew.get_user(session, user_id)
+    user_in_db = await UsersRepositoryNew.get_user(session, user_id=user_id)
     
     if user_in_db is None:
       raise HTTPException(detail=f"user {user_id} not exists", status_code=status.HTTP_404_NOT_FOUND)
