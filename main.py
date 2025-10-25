@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
   # await create_db_tables()
 
   async with ConnectionManager.get_session_ctx() as session:
-    # await UsersRepositoryNew.truncate_table(session)
+    # await UsersRepository.truncate_table(session)
     # await RolesRepository.insert_default_roles(session)
     pass
 

@@ -55,7 +55,7 @@ async def send_verification_link(session: AsyncSession, user_id: int, req: Reque
 
 
 @auth_router.post("/signup")
-async def signup_new(user: RegisterUser, background_tasks: BackgroundTasks, req: Request, session: AsyncSessionDepends):
+async def signup(user: RegisterUser, background_tasks: BackgroundTasks, req: Request, session: AsyncSessionDepends):
   result = await UsersRepository.create_user(session, user)
 
   if result is None:
