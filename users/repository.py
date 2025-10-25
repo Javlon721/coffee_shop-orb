@@ -143,6 +143,9 @@ class UsersRepositoryNew:
     if await UsersRepositoryNew.isUserExist(session, email=user.email):
       return None
 
+    hashed_password = hash_password(user.password)
+    user.set_hashed_password(hashed_password)
+
     stmt = insert(UsersORM).values(**user.model_dump()).returning(UsersORM.user_id)
 
     result = await session.execute(stmt)
