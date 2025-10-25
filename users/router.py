@@ -90,3 +90,24 @@ def update_user(user_id: int, user: UpdateUser, current_user: Annotated[UserWith
     raise HTTPException(detail=f"update info not provided", status_code=status.HTTP_400_BAD_REQUEST)
 
   return UsersRepository.update_user(user_id, user)
+
+
+@users_router_new.patch('/{user_id}')
+async def update_user_new(
+  user_id: int, 
+  user: UpdateUser, 
+  # current_user: Annotated[UserWithRoles, ValidUserDependency], 
+  session: AsyncSessionDepends
+) -> OKResponce:
+  # if not is_admin(current_user):
+  #   if current_user.user.user_id != user_id:
+  #     raise HTTPException(
+  #       status_code=status.HTTP_401_UNAUTHORIZED,
+  #       detail="Could not validate credentials",
+  #       headers={"WWW-Authenticate": "Bearer"},
+  #     )
+  
+  if not user.model_dump(exclude_none=True, exclude_defaults=True):
+    raise HTTPException(detail=f"update info not provided", status_code=status.HTTP_400_BAD_REQUEST)
+
+  return await UsersRepositoryNew.update_user(session, user_id, user)

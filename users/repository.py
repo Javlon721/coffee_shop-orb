@@ -2,7 +2,7 @@
 from typing import Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import delete, insert, text, select
+from sqlalchemy import delete, insert, text, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.utils import hash_password
@@ -140,7 +140,7 @@ class UsersRepositoryNew:
 
   @staticmethod
   async def create_user(session: AsyncSession, user: RegisterUser) -> OKResponce | None:
-    if await UsersRepositoryNew.isUserExist(session, user.email):
+    if await UsersRepositoryNew.isUserExist(session, email=user.email):
       return None
 
     stmt = insert(UsersORM).values(**user.model_dump()).returning(UsersORM.user_id)
@@ -191,8 +191,36 @@ class UsersRepositoryNew:
 
 
   @staticmethod
-  async def isUserExist(session: AsyncSession, email: str) -> bool:
-    query = select(UsersORM.user_id).filter_by(email=email)
+  async def update_user(session: AsyncSession, user_id: int, user: UpdateUser) -> OKResponce:
+    user_in_db = await UsersRepositoryNew.get_user(session, user_id)
+    
+    if user_in_db is None:
+      raise HTTPException(detail=f"user {user_id} not exists", status_code=status.HTTP_404_NOT_FOUND)
+
+    if user.email:
+      if user_in_db.email == user.email or await UsersRepositoryNew.isUserExist(session, email=user.email):
+        raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
+
+    stmt = (
+      update(UsersORM)
+        .values(**user.model_dump(exclude_none=True, exclude_defaults=True))
+        .filter_by(user_id=user_id)
+        .returning(UsersORM.user_id)
+    )
+
+    result = await session.scalar(stmt)
+
+    await session.commit()
+
+    assert result is not None
+
+    return OKResponce(ok=True, user_id=result)
+
+
+
+  @staticmethod
+  async def isUserExist(session: AsyncSession, **kwrgs) -> bool:
+    query = select(UsersORM.user_id).filter_by(**kwrgs)
 
     result = await session.scalars(query)
 
