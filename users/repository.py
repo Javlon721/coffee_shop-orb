@@ -7,11 +7,11 @@ from auth.utils import hash_password
 from users.models import OKResponce, RegisterUser, UpdateUser, User, UsersORM
 
 
-class UsersRepositoryNew:
+class UsersRepository:
 
   @staticmethod
   async def create_user(session: AsyncSession, user: RegisterUser) -> OKResponce | None:
-    if await UsersRepositoryNew.isUserExist(session, email=user.email):
+    if await UsersRepository.isUserExist(session, email=user.email):
       return None
 
     hashed_password = hash_password(user.password)
@@ -66,13 +66,13 @@ class UsersRepositoryNew:
 
   @staticmethod
   async def update_user(session: AsyncSession, user_id: int, user: UpdateUser) -> OKResponce:
-    user_in_db = await UsersRepositoryNew.get_user(session, user_id=user_id)
+    user_in_db = await UsersRepository.get_user(session, user_id=user_id)
     
     if user_in_db is None:
       raise HTTPException(detail=f"user {user_id} not exists", status_code=status.HTTP_404_NOT_FOUND)
 
     if user.email:
-      if user_in_db.email == user.email or await UsersRepositoryNew.isUserExist(session, email=user.email):
+      if user_in_db.email == user.email or await UsersRepository.isUserExist(session, email=user.email):
         raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
 
     stmt = (

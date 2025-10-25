@@ -5,7 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from roles.repository import RolesRepository
-from users.repository import UsersRepositoryNew
+from users.repository import UsersRepository
 from users.router import users_router
 from auth.router import auth_router
 from users_roles.router import users_roles_router

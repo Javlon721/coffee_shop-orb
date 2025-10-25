@@ -11,7 +11,7 @@ from auth.verification.models import VerificationToken
 from auth.verification.repository import VerificationRepository
 from db.connection import AsyncSessionDepends
 from users.models import RegisterUser, OKResponce, User, UserLogin
-from users.repository import  UsersRepositoryNew
+from users.repository import  UsersRepository
 from users_roles.repository import UsersRolesRepository
 from utils.utils import pretty_print
 
@@ -20,7 +20,7 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 async def authenticate_user(session: AsyncSession, user: UserLogin) -> User | None:
-  user_credential = await UsersRepositoryNew.get_user(session, email=user.email)
+  user_credential = await UsersRepository.get_user(session, email=user.email)
   
   if not user_credential:
     return None
@@ -56,7 +56,7 @@ async def send_verification_link(session: AsyncSession, user_id: int, req: Reque
 
 @auth_router.post("/signup")
 async def signup_new(user: RegisterUser, background_tasks: BackgroundTasks, req: Request, session: AsyncSessionDepends):
-  result = await UsersRepositoryNew.create_user(session, user)
+  result = await UsersRepository.create_user(session, user)
 
   if result is None:
     raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
@@ -73,7 +73,7 @@ async def verify(token: VerificationToken, session: AsyncSessionDepends) -> OKRe
   if verification is None:
     raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_400_BAD_REQUEST)
 
-  result = await UsersRepositoryNew.verify_user(session, verification.user_id)
+  result = await UsersRepository.verify_user(session, verification.user_id)
 
   if result is None:
     raise HTTPException(detail=f"user already verified", status_code=status.HTTP_400_BAD_REQUEST)
