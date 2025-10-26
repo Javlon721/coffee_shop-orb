@@ -189,8 +189,7 @@ async def get_all_users(session: AsyncSessionDepends) -> list[User]:
 
   return result
 
-class ErrorResponse(BaseModel):
-    detail: str
+
 @users_router.patch('/{user_id}',
   openapi_extra={
     **authorization_header
