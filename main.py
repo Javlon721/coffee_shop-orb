@@ -11,6 +11,7 @@ from auth.router import auth_router
 from users_roles.router import users_roles_router
 from roles.router import roles_router
 from db.connection import ConnectionManager, create_db_tables
+from auto_deletions.router import celery_router
 
 
 @asynccontextmanager
@@ -31,12 +32,10 @@ app = FastAPI(lifespan=lifespan)
 
 
 app.include_router(auth_router)
-
 app.include_router(users_router)
-
 app.include_router(users_roles_router)
 app.include_router(roles_router)
-
+app.include_router(celery_router)
 
 @app.get('/test')
 async def test(session: Annotated[AsyncSession, Depends(ConnectionManager.get_session)]):
