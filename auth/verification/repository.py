@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 
@@ -34,6 +34,7 @@ class VerificationRepository:
 
     return VerificationToken(token=token)
 
+
   @staticmethod
   async def get(session: AsyncSession, token: str) -> Verification | None:
     now = get_utc_time()
@@ -46,3 +47,25 @@ class VerificationRepository:
       return None
 
     return Verification.model_validate(data, from_attributes=True)
+
+
+  @staticmethod
+  async def get_expired_users(session: AsyncSession, expire_delta: timedelta = timedelta()):
+    now = get_utc_time() + expire_delta
+    print("-----", now, "-----")
+    query = select(VerificationsORM.id, VerificationsORM.user_id).filter(now >= VerificationsORM.expires_at)
+
+    resp = await session.scalars(query)
+
+    result = resp.all()
+
+    if not result:
+      return None
+
+    return result
+
+
+  @staticmethod
+  async def truncate_table(session: AsyncSession):
+    await session.execute(text("TRUNCATE TABLE verifications RESTART IDENTITY CASCADE"))
+    await session.commit()
