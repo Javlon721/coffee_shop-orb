@@ -65,8 +65,43 @@ async def send_verification_link(session: AsyncSession, user_id: int, req: Reque
   return verification_link
 
 
-@auth_router.post("/signup")
-async def signup(user: RegisterUser, background_tasks: BackgroundTasks, req: Request, session: AsyncSessionDepends):
+@auth_router.post("/signup", 
+  summary="Create an new user",
+  responses={
+    "400": {
+      "description": "User exists error",
+      "content": {
+        "application/json": {
+            "example": {"detail": "user some@mail.ru already exists"}
+          }
+      }
+    },
+    "200":{
+      "model": OKResponce,
+      "description": "Returns new created user",
+            "content": {
+                "application/json": {
+                    "example": {"ok": True, "user_id": 1}
+                }
+            },
+    }
+  },
+)
+async def signup(
+  user: RegisterUser, 
+  background_tasks: BackgroundTasks, 
+  req: Request, 
+  session: AsyncSessionDepends
+) -> OKResponce:
+  """
+    Create a new user:
+    
+    - **email**: string
+    - **password**: string
+    - **first_name**: string | None
+    - **last_name**: string | None
+  """
+  
   result = await UsersRepository.create_user(session, user)
 
   if result is None:
@@ -78,12 +113,45 @@ async def signup(user: RegisterUser, background_tasks: BackgroundTasks, req: Req
   return result
 
 
-@auth_router.post(f"/{AuthConfig.VERIFICATION_ENDPOINT_PATH}")
+@auth_router.post(f"/{AuthConfig.VERIFICATION_ENDPOINT_PATH}",
+  responses={
+    "200":{
+      "model": OKResponce,
+      "description": "Returns verified user_id",
+      "content": {
+          "application/json": {
+              "example": {"ok": True, "user_id": 1}
+          }
+      },
+    },
+    "400": {
+      "description": "User already verified error",
+      "content": {
+        "application/json": {
+            "example": {"detail": "user already verified"}
+          }
+      }
+    },
+    "403": {
+      "description": "Token invalid or expired error",
+      "content": {
+        "application/json": {
+            "example": {"detail": "token invalid or expired"}
+          }
+      }
+    },
+  },
+)
 async def verify(token: VerificationToken, session: AsyncSessionDepends) -> OKResponce:
+  """
+    Verifies user by given verification token
+    
+    - **token**: string
+  """
   verification = await VerificationRepository.get(session, token.token)
 
   if verification is None:
-    raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_400_BAD_REQUEST)
+    raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_403_FORBIDDEN)
 
   result = await UsersRepository.verify_user(session, verification.user_id)
 
@@ -93,8 +161,34 @@ async def verify(token: VerificationToken, session: AsyncSessionDepends) -> OKRe
   return result
 
 
-@auth_router.post("/login")
+@auth_router.post("/login",
+  responses={
+    "200":{
+      "model": Tokens,
+      "description": "Returns authenticated user tokes",
+      "content": {
+        "application/json": {
+            "example": {"access_token": "string", "refresh_token": "string", "token_type": "bearer"}
+        }
+      },
+    },
+    "401": {
+      "description": "Invalid user credentials error",
+      "content": {
+        "application/json": {
+            "example": {"detail": "invalid user credentials"}
+          }
+      }
+    },
+  }
+)
 async def login(user: UserLogin, session: AsyncSessionDepends) -> Tokens:
+  """
+    Loging in user by
+    
+    - **email**: string
+    - **password**: string
+  """
   user_credentials = await authenticate_user(session, user)
   
   if not user_credentials:
@@ -110,6 +204,46 @@ async def login(user: UserLogin, session: AsyncSessionDepends) -> Tokens:
   return Tokens(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
-@auth_router.post("/refresh")
+@auth_router.post("/refresh",
+  responses={
+    "200":{
+      "model": AccessToken,
+      "description": "Returns new access token",
+      "content": {
+        "application/json": {
+          "example": {"access_token": "string", "token_type": "bearer"}
+        }
+      },
+    },
+    "400": {
+      "description": "Refresh token expired error",
+      "content": {
+        "application/json": {
+          "example": {"detail": "Refresh token expired"}
+        }
+      }
+    },
+    "401": {
+      "description": "Invalid user credentials error",
+      "content": {
+        "application/json": {
+          "example": {"detail": "Could not validate credentials"}
+        }
+      }
+    },
+  },
+  openapi_extra={
+    "parameters": [
+      {
+        "name": "Authorization",
+        "in": "header",
+        "required": True,
+        "schema": {"type": "string"},
+        "description": "String with refresh-token bearer",
+        "example": {"Authorization": "Bearer refresh-token"}
+      }
+    ]
+  }
+)
 async def refresh(new_access_token: Annotated[AccessToken, Depends(renew_access_token)]):
   return new_access_token
