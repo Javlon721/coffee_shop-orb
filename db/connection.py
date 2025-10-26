@@ -1,4 +1,4 @@
-from contextlib import asynccontextmanager
+from contextlib import _AsyncGeneratorContextManager, asynccontextmanager
 from typing import Annotated, Any, AsyncGenerator, Callable
 
 from fastapi import Depends
@@ -75,7 +75,7 @@ class _ConnectionManager:
         yield session
 
 
-  def get_session_ctx(self):
+  def get_session_ctx(self)->_AsyncGeneratorContextManager[AsyncSession, None]:
     return  self.get_ctx_manager_from(self.get_session)
 
 
@@ -84,7 +84,7 @@ class _ConnectionManager:
       yield conn
 
 
-  def get_conn_ctx(self):
+  def get_conn_ctx(self) -> _AsyncGeneratorContextManager[AsyncConnection, None]:
     return self.get_ctx_manager_from(self.get_connection)
 
 
