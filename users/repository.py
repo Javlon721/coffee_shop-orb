@@ -65,6 +65,22 @@ class UsersRepository:
 
 
   @staticmethod
+  async def delete_users(session: AsyncSession, users_id: list[int])-> list[OKResponce] | None:
+    stmt = delete(UsersORM).filter(UsersORM.user_id.in_(users_id)).returning(UsersORM.user_id)
+
+    resp = await session.scalars(stmt)
+
+    await session.commit()
+
+    result = resp.all()
+
+    if not result:
+      return None
+
+    return [OKResponce(ok=True, user_id=user_id) for user_id in users_id] 
+
+
+  @staticmethod
   async def update_user(session: AsyncSession, user_id: int, user: UpdateUser) -> OKResponce:
     user_in_db = await UsersRepository.get_user(session, user_id=user_id)
     
