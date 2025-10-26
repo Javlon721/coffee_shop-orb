@@ -15,6 +15,9 @@ celery_router = APIRouter(prefix="/celery")
 
 @celery_router.get("/")
 async def task(session: AsyncSessionDepends):
+  """
+  Be aware of using this endpoint. It erases all DB data and inserts MOCK one
+  """  
   await UsersRepository.truncate_table(session)
   await VerificationRepository.truncate_table(session)
   
@@ -34,6 +37,10 @@ async def task(session: AsyncSessionDepends):
 
 @celery_router.get("/expire")
 async def delete_expired_users():
+  """
+  Manually removes from DB expired users by calling *celery* task `delete_expired_users_task`
+  """  
+
   result = delete_expired_users_task.delay()
   
   return result.get()

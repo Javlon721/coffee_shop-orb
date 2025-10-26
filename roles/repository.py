@@ -21,6 +21,9 @@ class RolesRepository:
 
   @staticmethod
   async def insert_default_roles(session: AsyncSession) -> None:
+    """
+    Method creates in DB availave roles
+    """    
     session.add_all([RolesORM(role=role) for role in AvailableRoles])
     await session.commit()
 

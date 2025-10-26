@@ -32,6 +32,12 @@ async def authenticate_user(session: AsyncSession, user: UserLogin) -> User | No
 
 
 async def get_user_roles(session: AsyncSession, user_id: int) -> str:
+  """
+  Gets user roles from DB by *user_id*
+
+  :returns: string that joined with space (i.e. "user admin superadmin")
+  
+  """  
   roles = await UsersRolesRepository.get_roles_by(session, user_id)
   
   if not roles:
@@ -41,6 +47,11 @@ async def get_user_roles(session: AsyncSession, user_id: int) -> str:
 
 
 async def send_verification_link(session: AsyncSession, user_id: int, req: Request):
+  """
+  For simplicity i make verification url printed to the console
+  
+  Ideally it should send a html generated responce
+  """  
   v_token = await VerificationRepository.add(session, user_id)
 
   if v_token is None:

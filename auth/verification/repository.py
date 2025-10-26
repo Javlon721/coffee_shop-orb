@@ -11,6 +11,10 @@ from auth.verification.models import Verification, VerificationToken, Verificati
 
 
 class VerificationRepository:
+  """
+  In some situations `relationship` from sqlalchemy is better choise,
+  however i left with simple and brief `join`-usage structure of tables
+  """
   
   @staticmethod
   async def add(session: AsyncSession, user_id: int) -> VerificationToken | None:

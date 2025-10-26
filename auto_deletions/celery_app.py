@@ -20,6 +20,10 @@ def setup_periodic_tasks(sender: Celery, **kwargs):
 
 @app.task
 def delete_expired_users_task():
+  """
+    Forgive me for code repetitions. 
+    It should be implemented with appropriate Pydantic models
+  """  
   try:
     result: list[OKResponce] | None = asyncio.run(expired_users())
 

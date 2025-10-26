@@ -24,6 +24,11 @@ class AvailableRoles(StrEnum):
 
 
 class RolesORM(Base):
+  """
+  In some situations `relationship` from sqlalchemy is better choise,
+  however i left with simple and brief `join`-usage structure of tables
+  """
+  
   __tablename__ = "roles"
   
   role_id: Mapped[INT_PK]

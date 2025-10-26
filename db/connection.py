@@ -9,7 +9,19 @@ from db.models import  Base
 
 
 class _ConnectionManager:
+  """
+  :param url: string db connection url
+  
+  :param echo: optional bool whether SQLAlchemy should log all executed SQL statements.
+  
+  :param pool_size: optional number of connections to keep in the connection pool.
 
+  :param pool_size: optional number maximum number of connections that can be created above `pool_size`.
+  
+  Methods `get_session` and `get_connection` return AsyncSession for DI in endpoints.
+
+  Otherwise `get_session_ctx` and `get_conn_ctx` can be used directly in context managers
+  """  
   def __init__(
       self,
       url: str,

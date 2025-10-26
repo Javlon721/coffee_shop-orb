@@ -53,6 +53,11 @@ class UserLogin(BaseModel):
 
 
 class UsersORM(Base):
+  """
+  In some situations `relationship` from sqlalchemy is better choise,
+  however i left with simple and brief `join`-usage structure of tables
+  """
+  
   __tablename__ = "users"
   
   user_id: Mapped[INT_PK]

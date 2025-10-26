@@ -82,6 +82,10 @@ class UsersRepository:
 
   @staticmethod
   async def update_user(session: AsyncSession, user_id: int, user: UpdateUser) -> OKResponce:
+    """
+    I could not do optional returning type of this function, because of 
+    lots of various error cases. If you have any tips please let me know)
+    """    
     user_in_db = await UsersRepository.get_user(session, user_id=user_id)
     
     if user_in_db is None:

@@ -24,6 +24,11 @@ class OKResponce(BaseModel):
 
 
 class UsersRolesORM(Base):
+  """
+  In some situations `relationship` from sqlalchemy is better choise,
+  however i left with simple and brief `join`-usage structure of tables
+  """
+  
   __tablename__ = "users_roles"
 
   id: Mapped[INT_PK]

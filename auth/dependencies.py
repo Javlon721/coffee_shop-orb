@@ -19,6 +19,26 @@ async def get_current_user(
   token: Annotated[str, Depends(oauth2_scheme)], 
   session: AsyncSessionDepends
 ) -> UserWithRoles:
+  """
+  Its a dependency for user authorization. Purpose is to verify incoming users by accsess token
+  to have permissions to endpoints
+
+  :returns: An object containing the authenticated user and their roles.
+  :rtype: UserWithRoles
+
+  UserWithRoles Attributes:
+      - **user** (*User*): The authenticated user object.
+      - **roles** (*list[str]*): List of role names assigned to the user.
+
+  User Attributes:
+      - **user_id** (*int)
+      - **email** (*str)
+      - **password** (*str)
+      - **first_name** (*str)
+      - **last_name** (*str)
+      - **created_at** (*datetime)
+      - **is_verified** (*bool)
+  """  
   if security_scopes.scopes:
     authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
   else:
