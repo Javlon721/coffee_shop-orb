@@ -12,7 +12,6 @@ from auth.verification.repository import VerificationRepository
 from db.connection import AsyncSessionDepends
 from users.models import RegisterUser, OKResponce, User, UserLogin
 from users.repository import  UsersRepository
-from users_roles.models import RegisterUserRole
 from users_roles.repository import UsersRolesRepository
 from utils.utils import pretty_print
 
@@ -88,7 +87,7 @@ async def login(user: UserLogin, session: AsyncSessionDepends) -> Tokens:
   user_credentials = await authenticate_user(session, user)
   
   if not user_credentials:
-    raise HTTPException(detail=f"invalid user credentials", status_code=status.HTTP_403_FORBIDDEN)
+    raise HTTPException(detail=f"invalid user credentials", status_code=status.HTTP_401_UNAUTHORIZED)
 
   user_roles = await get_user_roles(session, user_credentials.user_id)
 
