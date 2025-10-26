@@ -1,46 +1,14 @@
 from typing import Annotated
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
 
 from auth.dependencies import AdminDependency, ValidUserDependency, is_admin
 from db.connection import AsyncSessionDepends
 from users.models import OKResponce, UpdateUser, User, UserWithRoles
 from users.repository import UsersRepository
-
+from utils.common_responses import authorization_header, token_responses
 
 users_router = APIRouter(prefix="/users", tags=["users"])
 
-authorization_header = {
-  "parameters": [
-    {
-      "name": "Authorization",
-      "in": "header",
-      "required": True,
-      "schema": {"type": "string"},
-      "description": "String with access_token bearer",
-      "example": "Bearer access_token_here"
-    }
-  ]
-}
-
-token_responses = {
-  "400": {
-    "description": "Refresh token expired error",
-    "content": {
-      "application/json": {
-        "example": {"detail": "Refresh token expired"}
-      }
-    }
-  },
-  "401": {
-    "description": "Invalid user credentials error",
-    "content": {
-      "application/json": {
-        "example": {"detail": "Could not validate credentials"}
-      }
-    }
-  },
-}
 
 not_found_responce = {
   "404": {
@@ -55,6 +23,7 @@ not_found_responce = {
 
 
 @users_router.get('/me', 
+  summary="Get token holder info",
   openapi_extra={
     **authorization_header
   },
@@ -84,6 +53,7 @@ async def get_me(user: Annotated[UserWithRoles, ValidUserDependency]) -> User:
 
 
 @users_router.get('/{user_id}', dependencies=[AdminDependency],
+  summary="Get user by user_id (only for admin)",
   openapi_extra={
     **authorization_header
   },
@@ -117,6 +87,7 @@ async def get_user(user_id: int,  session: AsyncSessionDepends) -> User:
 
 
 @users_router.delete('/{user_id}', dependencies=[AdminDependency],
+  summary="Delete user (only for admin)",
   openapi_extra={
     **authorization_header
   },
@@ -147,6 +118,7 @@ async def delete_user(user_id: int, session: AsyncSessionDepends) -> OKResponce:
 
 
 @users_router.get('/', dependencies=[AdminDependency],
+  summary="Get all users (only for admin)",
   openapi_extra={
     **authorization_header
   },
@@ -191,6 +163,7 @@ async def get_all_users(session: AsyncSessionDepends) -> list[User]:
 
 
 @users_router.patch('/{user_id}',
+  summary="Partially update user info",
   openapi_extra={
     **authorization_header
   },
