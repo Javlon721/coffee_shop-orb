@@ -20,7 +20,7 @@ from auth.verification import models #noqa
 DBConfig = _DBConfig(_env_file=".env.test") #type: ignore
 
 
-@pytest_asyncio.fixture(scope="module")
+@pytest_asyncio.fixture(scope="session")
 async def conn_manager():
 
   connectionManager = _ConnectionManager(
