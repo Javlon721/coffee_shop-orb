@@ -52,7 +52,7 @@ class VerificationRepository:
   @staticmethod
   async def get_expired_users(session: AsyncSession, expire_delta: timedelta = timedelta()):
     now = get_utc_time() + expire_delta
-    print("-----", now, "-----")
+
     query = select(VerificationsORM.id, VerificationsORM.user_id).filter(now >= VerificationsORM.expires_at)
 
     resp = await session.scalars(query)
