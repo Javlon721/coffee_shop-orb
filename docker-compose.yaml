@@ -16,6 +16,16 @@ services:
       - postgres:/var/lib/postgresql/data
     env_file:
       - .env
+  
+  testDB:
+    image: postgres
+    ports:
+      - '6543:5432'
+    volumes:
+      - test_postgres:/var/lib/postgresql/data
+    env_file:
+      - .env
 
 volumes:
   postgres:
+  test_postgres:
