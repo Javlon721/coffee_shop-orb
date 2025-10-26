@@ -216,10 +216,10 @@ async def login(user: UserLogin, session: AsyncSessionDepends) -> Tokens:
       },
     },
     "400": {
-      "description": "Refresh token expired error",
+      "description": "Access token expired error",
       "content": {
         "application/json": {
-          "example": {"detail": "Refresh token expired"}
+          "example": {"detail": "Access token expired"}
         }
       }
     },
@@ -239,8 +239,8 @@ async def login(user: UserLogin, session: AsyncSessionDepends) -> Tokens:
         "in": "header",
         "required": True,
         "schema": {"type": "string"},
-        "description": "String with refresh-token bearer",
-        "example": {"Authorization": "Bearer refresh-token"}
+        "description": "String with refresh_token bearer",
+        "example": "Bearer refresh_token_here"
       }
     ]
   }
