@@ -15,14 +15,7 @@ from auto_deletions.router import celery_router
 app = FastAPI()
 
 
-app.include_router(auth_router)
-app.include_router(users_router)
-app.include_router(users_roles_router)
-app.include_router(roles_router)
-app.include_router(celery_router)
-
-
-@app.get('/refresh')
+@app.get('/refresh', tags=["danger"], summary="Rebuilds database with one admin user")
 async def refresh_db(session: AsyncSessionDepends):
     """
     Rebuilds database with one admin user. 
@@ -43,3 +36,9 @@ async def refresh_db(session: AsyncSessionDepends):
     await UsersRolesRepository.add_main_admin_roles(session, resp.user_id)
     
     return "API ready for use"
+
+app.include_router(auth_router)
+app.include_router(users_router)
+app.include_router(users_roles_router)
+app.include_router(roles_router)
+app.include_router(celery_router)

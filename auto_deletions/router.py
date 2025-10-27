@@ -10,7 +10,7 @@ from users.repository import UsersRepository
 from auto_deletions.raw_data import raw_verifications, raw_users
 
 
-celery_router = APIRouter(prefix="/celery")
+celery_router = APIRouter(prefix="/celery", tags=["celery"])
 
 
 @celery_router.get("/")
