@@ -1,6 +1,6 @@
 services:
   testDB:
-    image: postgres
+    image: postgres:17
     ports:
       - '6543:5432'
     volumes:
