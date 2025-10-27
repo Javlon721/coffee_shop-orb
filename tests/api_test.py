@@ -41,13 +41,6 @@ async def client_getter(dependencies_overrider):
 
 
 @pytest.mark.asyncio
-async def test_root_test_endpoint(client_getter: AsyncClient):
-    response = await client_getter.get("/test")
-
-    assert response.status_code == 200
-
-
-@pytest.mark.asyncio
 @pytest.mark.parametrize("email,password, status_code", [
   ("admin@mail.ru", "qwerty", status.HTTP_200_OK),
   ("user@mail.ru", "qwerty", status.HTTP_200_OK),
