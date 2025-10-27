@@ -1,34 +1,18 @@
-from contextlib import asynccontextmanager
-from typing import Annotated
-from fastapi import Depends, FastAPI
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import FastAPI
+
 
 from roles.repository import RolesRepository
 from users.repository import UsersRepository
 from users.router import users_router
 from auth.router import auth_router
+from users_roles.repository import UsersRolesRepository
 from users_roles.router import users_roles_router
 from roles.router import roles_router
-from db.connection import ConnectionManager, create_db_tables
+from db.connection import AsyncSessionDepends, create_db_tables
 from auto_deletions.router import celery_router
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-  # await create_db_tables()
-
-  async with ConnectionManager.get_session_ctx() as session:
-    # await UsersRepository.truncate_table(session)
-    # await RolesRepository.insert_default_roles(session)
-    pass
-
-  yield
-
-  print("do clean up")
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 
 app.include_router(auth_router)
@@ -37,7 +21,25 @@ app.include_router(users_roles_router)
 app.include_router(roles_router)
 app.include_router(celery_router)
 
-@app.get('/test')
-async def test(session: Annotated[AsyncSession, Depends(ConnectionManager.get_session)]):
-    result = await session.execute(text("select now()"))
-    return result.scalar_one()
+
+@app.get('/refresh')
+async def refresh_db(session: AsyncSessionDepends):
+    """
+    Rebuilds database with one admin user. 
+
+    Be aware of using it. This endpoint deletes all data
+
+    This is `костыль` for creating project. 
+    I agree that project startup is nasty.
+    """
+    await create_db_tables()
+
+    await RolesRepository.insert_default_roles(session)
+
+    resp = await UsersRepository.add_main_admin(session)
+
+    assert resp is not None
+
+    await UsersRolesRepository.add_main_admin_roles(session, resp.user_id)
+    
+    return "API ready for use"

@@ -73,3 +73,18 @@ class UsersRolesRepository:
     assert resp is not None
 
     await UsersRolesRepository.add(session, RegisterUserRole(user_id=user_id, role_id=resp.role_id))
+
+
+  @staticmethod
+  async def add_main_admin_roles(session: AsyncSession, user_id: int) -> OKResponce | None:
+    admin_role = AvailableRoles.ADMIN
+
+    resp = await RolesRepository.get_role(session, admin_role)
+
+    assert resp is not None
+
+    default_admin_role = RegisterUserRole(user_id=user_id, role_id=resp.role_id)
+
+    result = await UsersRolesRepository.add(session, default_admin_role)
+
+    return result

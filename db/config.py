@@ -14,6 +14,8 @@ class _DBConfig(ConfigModel):
   CONNECTION_POOL_MAX_SIZE: int
   ORM_ECHO: bool
 
+  ADMIN_EMAIL: str
+  ADMIN_PASSWORD: str
 
   @property
   def URI(self) -> str:

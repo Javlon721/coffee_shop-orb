@@ -4,6 +4,7 @@ from sqlalchemy import delete, insert, text, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.utils import hash_password
+from db.config import DBConfig
 from users.models import OKResponce, RegisterUser, UpdateUser, User, UsersORM
 
 
@@ -140,6 +141,19 @@ class UsersRepository:
       return False
 
     return True
+
+
+  @staticmethod
+  async def add_main_admin(session: AsyncSession) -> OKResponce | None:
+    admin = RegisterUser(email=DBConfig.ADMIN_EMAIL, password=DBConfig.ADMIN_PASSWORD)
+
+    result = await UsersRepository.create_user(session, admin)
+
+    assert result is not None
+
+    await UsersRepository.verify_user(session, result.user_id)
+
+    return result
 
 
   @staticmethod
