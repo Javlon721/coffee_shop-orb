@@ -1,31 +1,23 @@
 services:
   api:
-    build: ./
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
     ports:
       - '8000:8000'
     depends_on:
       - db
     env_file:
-      - .env
+      - .env.docker
 
   db:
-    image: postgres
+    image: postgres:17
     ports:
       - '5432:5432'
     volumes:
       - postgres:/var/lib/postgresql/data
     env_file:
       - .env
-  
-  testDB:
-    image: postgres
-    ports:
-      - '6543:5432'
-    volumes:
-      - test_postgres:/var/lib/postgresql/data
-    env_file:
-      - .env
-  
+
   redis:
     image: redis
     ports:
@@ -33,7 +25,24 @@ services:
     volumes:
       - redis_data:/data
 
+  celery_worker:
+    build: .
+    command: celery -A auto_deletions.celery_app worker -l info
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env.docker
+
+  celery_beat:
+    build: .
+    command: celery -A auto_deletions.celery_app beat -l info
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env.docker
+
 volumes:
   postgres:
-  test_postgres:
   redis_data:

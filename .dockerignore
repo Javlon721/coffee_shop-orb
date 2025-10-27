@@ -1,0 +1,58 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+/**/__pycache__/
+
+# Environments
+.env
+.env.*
+.venv
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be added to the global gitignore or merged into this project gitignore.
+.idea/
+
+# VS Code
+.vscode/
+
+# OS generated files
+.DS_Store
+/**/.DS_Store
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+docker-compose*.yaml
+.dockerignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+README.rst
+docs/
+*.md
+*.rst
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# FastAPI specific
+.pytest_cache/
+.coverage
+htmlcov/
