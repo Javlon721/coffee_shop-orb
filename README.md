@@ -4,7 +4,7 @@
 
 - In terminal:
     
-    ```json
+    ```
     docker compose up -d
     ```
     
@@ -22,7 +22,7 @@ You MUST trigger GET endpoint [http://0.0.0.0:8000/refresh](http://0.0.0.0:8000/
 
 - You can find `admin credentials` in `.env` files (change them according to method you chose to run project), which look like this:
     
-    ```json
+    ```
     #Admin credentials
     ADMIN_EMAIL=admin@mail.ru
     ADMIN_PASSWORD=qwerty
@@ -35,19 +35,19 @@ You MUST trigger GET endpoint [http://0.0.0.0:8000/refresh](http://0.0.0.0:8000/
 
 - In terminal:
     
-    ```json
+    ```
     Create .venv folder for local modules
     
     python3 -m venv .venv  
     ```
     
-    ```json
+    ```
     Activate .venv folder
     
     source .venv/bin/activate
     ```
     
-    ```json
+    ```
     Install all modules
     
     pip install -r requirements.txt
@@ -62,7 +62,7 @@ You MUST trigger GET endpoint [http://0.0.0.0:8000/refresh](http://0.0.0.0:8000/
 
 - In terminal:
     
-    ```json
+    ```
     docker compose up celery_worker celery_beat -d
     ```
     
@@ -73,13 +73,13 @@ You MUST trigger GET endpoint [http://0.0.0.0:8000/refresh](http://0.0.0.0:8000/
 
 - In terminal:
     
-    ```json
+    ```
     docker compose up db redis -d
     ```
     
 - Then you need to manually start celery tasks:
     
-    ```json
+    ```
     celery -A auto_deletions.celery_app worker -l info
     celery -A auto_deletions.celery_app beat -l info
     ```
@@ -87,7 +87,7 @@ You MUST trigger GET endpoint [http://0.0.0.0:8000/refresh](http://0.0.0.0:8000/
 
 ### And start the API:
 
-```json
+```
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
@@ -101,21 +101,21 @@ Please do not run all tests together because `api_test.py` and `module_test.py` 
 
 - In terminal start database for tests
     
-    ```json
+    ```
     docker compose -f docker-compose-test.yaml up -d
     ```
     
 - And run specific test
     
-    ```json
+    ```
     PYTHONPATH=. pytest tests/api_test.py
     ```
     
-    ```json
+    ```
     PYTHONPATH=. pytest tests/module_test.py
     ```
     
-    ```json
+    ```
     PYTHONPATH=. pytest tests/unit_test.py
     ```
     
@@ -130,7 +130,7 @@ Some documentations are omited. I believe that name of functionality should tell
 
 There are many ways to structure a project, however i choose this common pattern:
 
-```json
+```
 ├── module
 │   ├── config.py
 │   ├── dependencies.py
@@ -155,7 +155,7 @@ There are many ways to structure a project, however i choose this common pattern
 
 Then we have separate module for testing and celery tasks:
 
-```json
+```
 ├── auto_deletions
 │   ├── celery_app.py
 │   ├── config.py
@@ -175,7 +175,7 @@ I left the `sql` module out for simplicity, so you can see what the database loo
 
 So if we look to the project we can observe this hierarchy:
 
-```json
+```
 ├── auth
 │   ├── config.py
 │   ├── dependencies.py
