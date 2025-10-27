@@ -15,7 +15,13 @@ app = Celery(broker=Config.URL, backend=Config.URL)
 
 @app.on_after_configure.connect #type: ignore
 def setup_periodic_tasks(sender: Celery, **kwargs):
-    sender.add_periodic_task(5, delete_expired_users_task.s(), name='delete expired users')
+  """
+  Schedule can be regulated later (specific day, date, etc...), 
+  so i left it to trigger every 12 houres
+  """  
+
+  every_12_houres = 60 * 60 * 12
+  sender.add_periodic_task(every_12_houres, delete_expired_users_task.s(), name='delete expired users')
 
 
 @app.task
