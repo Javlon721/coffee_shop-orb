@@ -3,17 +3,17 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.config import AuthConfig
-from auth.dependencies import renew_access_token
-from auth.models import AccessToken, Tokens
-from auth.utils import create_access_token, create_refresh_token, generate_verification_link, verify_password
-from auth.verification.models import VerificationToken
-from auth.verification.repository import VerificationRepository
-from db.connection import AsyncSessionDepends
-from users.models import RegisterUser, OKResponce, User, UserLogin
-from users.repository import  UsersRepository
-from users_roles.repository import UsersRolesRepository
-from utils.utils import pretty_print
+from src.auth.config import AuthConfig
+from src.auth.dependencies import renew_access_token
+from src.auth.models import AccessToken, Tokens
+from src.auth.utils import create_access_token, create_refresh_token, generate_verification_link, verify_password
+from src.auth.verification.models import VerificationToken
+from src.auth.verification.repository import VerificationRepository
+from src.db.connection import AsyncSessionDepends
+from src.users.models import RegisterUser, OKResponce, User, UserLogin
+from src.users.repository import  UsersRepository
+from src.users_roles.repository import UsersRolesRepository
+from src.utils.utils import pretty_print
 
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])

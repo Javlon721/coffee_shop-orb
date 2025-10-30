@@ -1,6 +1,6 @@
 
 
-from utils.models import ConfigModel
+from src.utils.models import ConfigModel
 
 
 class _DBConfig(ConfigModel):

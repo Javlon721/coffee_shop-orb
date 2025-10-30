@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from roles.models import AvailableRoles, OKResponce, Role, RolesORM
+from src.roles.models import AvailableRoles, OKResponce, Role, RolesORM
 
 
 class RolesRepository:

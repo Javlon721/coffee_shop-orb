@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 
 
-from auth.config import AuthConfig
-from auth.utils import generate_verification_token, get_expiration_time, get_utc_time
-from auth.verification.models import Verification, VerificationToken, VerificationsORM
+from src.auth.config import AuthConfig
+from src.auth.utils import generate_verification_token, get_expiration_time, get_utc_time
+from src.auth.verification.models import Verification, VerificationToken, VerificationsORM
 
 
 class VerificationRepository:

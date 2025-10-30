@@ -6,7 +6,7 @@ from typing import Any
 import jwt
 from pwdlib import PasswordHash
 
-from auth.config import AuthConfig
+from src.auth.config import AuthConfig
 
 
 password_hash = PasswordHash.recommended()

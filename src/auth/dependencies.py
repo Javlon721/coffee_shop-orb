@@ -3,12 +3,12 @@ from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 from jwt import ExpiredSignatureError
 
-from auth.models import AccessToken, AccessTokenData
-from auth.utils import create_access_token, decode_token, get_roles_from
-from db.connection import AsyncSessionDepends
-from roles.models import AvailableRoles
-from users.models import UserWithRoles
-from users.repository import UsersRepository
+from src.auth.models import AccessToken, AccessTokenData
+from src.auth.utils import create_access_token, decode_token, get_roles_from
+from src.db.connection import AsyncSessionDepends
+from src.roles.models import AvailableRoles
+from src.users.models import UserWithRoles
+from src.users.repository import UsersRepository
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", refreshUrl="auth/refresh")

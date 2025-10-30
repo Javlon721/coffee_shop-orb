@@ -4,8 +4,8 @@ from typing import Annotated, Any, AsyncGenerator, Callable
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine, AsyncSession, AsyncConnection
 
-from db.config import DBConfig
-from db.models import  Base
+from src.db.config import DBConfig
+from src.db.models import  Base
 
 
 class _ConnectionManager:

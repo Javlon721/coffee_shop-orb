@@ -3,9 +3,9 @@ from fastapi import HTTPException, status
 from sqlalchemy import delete, insert, text, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.utils import hash_password
-from db.config import DBConfig
-from users.models import OKResponce, RegisterUser, UpdateUser, User, UsersORM
+from src.auth.utils import hash_password
+from src.db.config import DBConfig
+from src.users.models import OKResponce, RegisterUser, UpdateUser, User, UsersORM
 
 
 class UsersRepository:

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, status, HTTPException
 
-from auth.dependencies import AdminDependency
-from db.connection import AsyncSessionDepends
-from roles.models import Role
-from roles.repository import RolesRepository
-from utils.common_responses import authorization_header, token_responses
+from src.auth.dependencies import AdminDependency
+from src.db.connection import AsyncSessionDepends
+from src.roles.models import Role
+from src.roles.repository import RolesRepository
+from src.utils.common_responses import authorization_header, token_responses
 
 
 roles_router = APIRouter(prefix="/roles", tags=["roles"])

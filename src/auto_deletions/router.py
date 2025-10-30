@@ -3,7 +3,7 @@ from fastapi import APIRouter
 
 # from auth.verification.models import VerificationsORM
 # from auth.verification.repository import VerificationRepository
-from auto_deletions.celery_app import delete_expired_users_task
+from src.auto_deletions.celery_app import delete_expired_users_task
 # from db.connection import AsyncSessionDepends
 # from users.models import  UsersORM
 # from users.repository import UsersRepository

@@ -1,11 +1,11 @@
 from typing import Annotated
 from fastapi import APIRouter, HTTPException, status
 
-from auth.dependencies import AdminDependency, ValidUserDependency, is_admin
-from db.connection import AsyncSessionDepends
-from users.models import OKResponce, UpdateUser, User, UserWithRoles
-from users.repository import UsersRepository
-from utils.common_responses import authorization_header, token_responses
+from src.auth.dependencies import AdminDependency, ValidUserDependency, is_admin
+from src.db.connection import AsyncSessionDepends
+from src.users.models import OKResponce, UpdateUser, User, UserWithRoles
+from src.users.repository import UsersRepository
+from src.utils.common_responses import authorization_header, token_responses
 
 users_router = APIRouter(prefix="/users", tags=["users"])
 

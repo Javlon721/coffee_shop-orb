@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db.models import CREATED_AT, INT_PK, Base
+from src.db.models import CREATED_AT, INT_PK, Base
 
 
 EMAIL_FIELD = Field(max_length=150, pattern=r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")

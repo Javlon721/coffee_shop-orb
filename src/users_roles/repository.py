@@ -5,9 +5,9 @@ from sqlalchemy import insert, select
 from sqlalchemy.orm import aliased
 from sqlalchemy.exc import IntegrityError
 
-from roles.models import AvailableRoles, RolesORM, UserRole
-from roles.repository import RolesRepository
-from users_roles.models import OKResponce, RegisterUserRole, UserRoles, UsersRolesORM
+from src.roles.models import AvailableRoles, RolesORM, UserRole
+from src.roles.repository import RolesRepository
+from src.users_roles.models import OKResponce, RegisterUserRole, UserRoles, UsersRolesORM
 
 
 class UsersRolesRepository:

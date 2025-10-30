@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey
 
-from db.models import INT_PK, Base
+from src.db.models import INT_PK, Base
 
 
 class VerificationToken(BaseModel):

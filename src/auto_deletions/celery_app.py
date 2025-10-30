@@ -3,11 +3,11 @@ import asyncio
 
 from celery import Celery
 
-from auth.verification.repository import VerificationRepository
-from db.connection import ConnectionManager
-from users.models import  OKResponce
-from users.repository import UsersRepository
-from auto_deletions.config import Config
+from src.auth.verification.repository import VerificationRepository
+from src.db.connection import ConnectionManager
+from src.users.models import  OKResponce
+from src.users.repository import UsersRepository
+from src.auto_deletions.config import Config
 
 
 app = Celery(broker=Config.URL, backend=Config.URL)
