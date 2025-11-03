@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.utils import hash_password
 from db.config import DBConfig
-from users.models import OKResponce, RegisterUser, UpdateUser, User
+from users.schemas import OKResponce, RegisterUser, UpdateUser, User
 from users.repository import UsersRepository, UsersRepositoryPolicy
 
 

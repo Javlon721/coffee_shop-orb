@@ -5,10 +5,9 @@ from celery import Celery
 
 from auth.verification.repository import VerificationRepository
 from db.connection import ConnectionManager
-from users.models import  OKResponce
+from users.schemas import  OKResponce
 from auto_deletions.config import Config
 from users.repository import UsersRepository
-from users.service import UsersService
 
 
 app = Celery(broker=Config.URL, backend=Config.URL)

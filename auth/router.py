@@ -10,7 +10,7 @@ from auth.utils import create_access_token, create_refresh_token, generate_verif
 from auth.verification.models import VerificationToken
 from auth.verification.repository import VerificationRepository
 from db.connection import AsyncSessionDepends
-from users.models import RegisterUser, OKResponce, User, UserLogin
+from users.schemas import RegisterUser, OKResponce, User, UserLogin
 from users.service import UsersService
 from users_roles.repository import UsersRolesRepository
 from utils.utils import pretty_print

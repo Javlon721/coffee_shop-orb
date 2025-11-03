@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from auth.dependencies import AdminDependency, ValidUserDependency, is_admin
 from db.connection import AsyncSessionDepends
-from users.models import OKResponce, UpdateUser, User, UserWithRoles
+from users.schemas import OKResponce, UpdateUser, User, UserWithRoles
 from users.service import UsersService
 from utils.common_responses import authorization_header, token_responses
 

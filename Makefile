@@ -11,3 +11,9 @@ install:
 
 run:
 	@uvicorn main:app --reload --port $(API_PORT)
+
+rundb:
+	@docker compose up db -d
+
+conndb:
+	@psql -U postgres -d coffeeShop -h localhost
