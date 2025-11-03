@@ -114,6 +114,8 @@ async def delete_user(user_id: int, session: AsyncSessionDepends) -> OKResponce:
   if result is None:
     raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_404_NOT_FOUND)
 
+  await session.commit()
+
   return result
 
 
@@ -219,7 +221,8 @@ async def update_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
       )
-  
+
+  #todo this is business logic that should be moved into UsersService
   if not user.model_dump(exclude_none=True, exclude_defaults=True):
     raise HTTPException(detail=f"update info not provided", status_code=status.HTTP_400_BAD_REQUEST)
 
@@ -227,5 +230,7 @@ async def update_user(
 
   if result is None:
     raise HTTPException(detail=f"some errors occured", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+  await session.commit()
 
   return result
