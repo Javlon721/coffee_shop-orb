@@ -5,7 +5,8 @@ from sqlalchemy import insert, select
 from sqlalchemy.orm import aliased
 from sqlalchemy.exc import IntegrityError
 
-from roles.models import AvailableRoles, RolesORM, UserRole
+from roles.models import AvailableRoles, RolesORM
+from roles.schemas import  UserRole
 from roles.repository import RolesRepository
 from users_roles.models import OKResponce, RegisterUserRole, UserRoles, UsersRolesORM
 
@@ -68,7 +69,7 @@ class UsersRolesRepository:
   async def add_default_user_role(session: AsyncSession, user_id: int) -> OKResponce | None:
     default_user_role = AvailableRoles.USER
 
-    resp = await RolesRepository.get_role(session, default_user_role)
+    resp = await RolesRepository.get_role(session, role=default_user_role)
 
     assert resp is not None
 
@@ -79,7 +80,7 @@ class UsersRolesRepository:
   async def add_main_admin_roles(session: AsyncSession, user_id: int) -> OKResponce | None:
     admin_role = AvailableRoles.ADMIN
 
-    resp = await RolesRepository.get_role(session, admin_role)
+    resp = await RolesRepository.get_role(session, role=admin_role)
 
     assert resp is not None
 

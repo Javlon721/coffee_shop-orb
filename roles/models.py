@@ -1,21 +1,8 @@
 from enum import StrEnum
-from pydantic import BaseModel
+
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.models import INT_PK, Base
-
-
-class UserRole(BaseModel):
-  role: str
-
-
-class Role(UserRole):
-  role_id: int
-
-
-class OKResponce(BaseModel):
-  ok: bool
-  role_id: int
 
 
 class AvailableRoles(StrEnum):

@@ -2,8 +2,8 @@ from fastapi import APIRouter, status, HTTPException
 
 from auth.dependencies import AdminDependency
 from db.connection import AsyncSessionDepends
-from roles.models import Role
-from roles.repository import RolesRepository
+from roles.schemas import Role
+from roles.service import RolesService
 from utils.common_responses import authorization_header, token_responses
 
 
@@ -46,7 +46,7 @@ roles_router = APIRouter(prefix="/roles", tags=["roles"])
   },
 )
 async def get_all_roles(session: AsyncSessionDepends)->list[Role]:
-  result = await RolesRepository.get_roles(session)
+  result = await RolesService.get_roles(session)
 
   if result is None:
     raise HTTPException(detail=f"roles not found", status_code=status.HTTP_404_NOT_FOUND)
