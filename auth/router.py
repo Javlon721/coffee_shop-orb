@@ -7,8 +7,8 @@ from auth.config import AuthConfig
 from auth.dependencies import renew_access_token
 from auth.models import AccessToken, Tokens
 from auth.utils import create_access_token, create_refresh_token, generate_verification_link, verify_password
-from auth.verification.models import VerificationToken
-from auth.verification.repository import VerificationRepository
+from auth.verification.schemas import VerificationToken
+from auth.verification.service import VerificationService
 from db.connection import AsyncSessionDepends
 from users.schemas import RegisterUser, OKResponce, User, UserLogin
 from users.service import UsersService
@@ -52,7 +52,7 @@ async def send_verification_link(session: AsyncSession, user_id: int, req: Reque
   
   Ideally it should send a html generated responce
   """  
-  v_token = await VerificationRepository.add(session, user_id)
+  v_token = await VerificationService.add_token(session, user_id)
 
   if v_token is None:
     raise HTTPException(detail=f"some errors occured", status_code=status.HTTP_400_BAD_REQUEST)
@@ -151,7 +151,7 @@ async def verify(token: VerificationToken, session: AsyncSessionDepends) -> OKRe
     
     - **token**: string
   """
-  verification = await VerificationRepository.get(session, token.token)
+  verification = await VerificationService.get_valid_token(session, token.token)
 
   if verification is None:
     raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_403_FORBIDDEN)

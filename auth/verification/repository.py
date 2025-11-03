@@ -1,4 +1,6 @@
+from abc import ABC, abstractmethod
 from datetime import timedelta
+from typing import Any, Sequence
 
 from sqlalchemy import and_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,69 +9,74 @@ from sqlalchemy.dialects.postgresql import insert
 
 from auth.config import AuthConfig
 from auth.utils import generate_verification_token, get_expiration_time, get_utc_time
-from auth.verification.models import Verification, VerificationToken, VerificationsORM
+from auth.verification.schemas import Verification, VerificationToken
+from auth.verification.models import VerificationsORM
 
 
-class VerificationRepository:
-  """
-  In some situations `relationship` from sqlalchemy is better choise,
-  however i left with simple and brief `join`-usage structure of tables
-  """
-  
-  @staticmethod
-  async def add(session: AsyncSession, user_id: int) -> VerificationToken | None:
-    default_time_delta = timedelta(days=AuthConfig.VERIFICATION_TOKEN_EXPIRE_DAYS)
 
-    expires_at = get_expiration_time(default_time_delta)
-    token = generate_verification_token()
+class VerificationRepositoryPolicy(ABC):
 
-    stmt = (
-      insert(VerificationsORM)
-      .values(user_id=user_id, token=token, expires_at=expires_at)
-      .returning(VerificationsORM.id)
-    )
-
-    result = await session.scalar(stmt)
-
-    await session.commit()
-
-    if result is None:
-      return None
-
-    return VerificationToken(token=token)
+  model = VerificationsORM
 
 
-  @staticmethod
-  async def get(session: AsyncSession, token: str) -> Verification | None:
+  @classmethod
+  @abstractmethod
+  async def add_token(cls, session: AsyncSession, **data: Any) -> VerificationsORM:
+    pass
+
+
+  @classmethod
+  @abstractmethod
+  async def get_valid_token(cls, session: AsyncSession, **filters: Any) -> VerificationsORM | None:
+    pass
+
+
+  @classmethod
+  @abstractmethod
+  async def get_expired_users_id(cls, session: AsyncSession, **filters: Any) -> Sequence[int]:
+    pass
+
+
+  @classmethod
+  @abstractmethod
+  async def truncate_table(cls, session: AsyncSession) -> None:
+    pass
+
+
+class VerificationRepository(VerificationRepositoryPolicy):
+
+  @classmethod
+  async def add_token(cls, session: AsyncSession, **data: Any) -> VerificationsORM:
+    stmt = insert(cls.model).values(**data).returning(cls.model)
+
+    result = await session.execute(stmt)
+
+    return result.scalar_one()
+
+
+  @classmethod
+  async def get_valid_token(cls, session: AsyncSession, **filters: Any) -> VerificationsORM | None:
     now = get_utc_time()
 
-    query = select(VerificationsORM).filter(and_(VerificationsORM.token==token, VerificationsORM.expires_at >= now))
+    query = select(cls.model).filter_by(**filters).filter(cls.model.expires_at >= now)
 
-    data = await session.scalar(query)
+    result = await session.execute(query)
 
-    if data is None:
-      return None
-
-    return Verification.model_validate(data, from_attributes=True)
+    return result.scalar_one_or_none()
 
 
-  @staticmethod
-  async def get_expired_users(session: AsyncSession, expire_delta: timedelta = timedelta()):
+  @classmethod
+  async def get_expired_users_id(cls, session: AsyncSession, expire_delta: timedelta = timedelta()) -> Sequence[int]:
     now = get_utc_time() + expire_delta
 
-    query = select(VerificationsORM.id, VerificationsORM.user_id).filter(now >= VerificationsORM.expires_at)
+    query = select(cls.model.user_id).filter(now >= cls.model.expires_at)
 
-    resp = await session.scalars(query)
-
-    result = resp.all()
-
-    if not result:
-      return None
-
-    return result
+    result = await session.execute(query)
+    
+    return result.scalars().all()
 
 
-  @staticmethod
-  async def truncate_table(session: AsyncSession):
+  @classmethod
+  async def truncate_table(cls, session: AsyncSession) -> None:
     await session.execute(text("TRUNCATE TABLE verifications RESTART IDENTITY CASCADE"))
     await session.commit()
