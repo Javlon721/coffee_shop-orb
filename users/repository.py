@@ -1,162 +1,123 @@
+from abc import ABC, abstractmethod
+from typing import Any, Sequence
 
-from fastapi import HTTPException, status
 from sqlalchemy import delete, insert, text, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.utils import hash_password
-from db.config import DBConfig
-from users.models import OKResponce, RegisterUser, UpdateUser, User, UsersORM
+from users.models import UsersORM
 
 
-class UsersRepository:
 
-  @staticmethod
-  async def create_user(session: AsyncSession, user: RegisterUser) -> OKResponce | None:
-    if await UsersRepository.isUserExist(session, email=user.email):
-      return None
+class UsersRepositoryPolicy(ABC):
 
-    hashed_password = hash_password(user.password)
-    user.set_hashed_password(hashed_password)
+  model = UsersORM
 
-    stmt = insert(UsersORM).values(**user.model_dump()).returning(UsersORM.user_id)
+
+  @classmethod
+  @abstractmethod
+  async def create_user(cls, session: AsyncSession, **data: Any) -> int | None:
+    pass
+
+
+  @classmethod
+  @abstractmethod
+  async def get_user(cls, session: AsyncSession, **filters: Any) -> UsersORM | None:
+    """
+      :params **filters: any (keyword, value) that matches users table columns
+      >>> UsersRepositoryPolicy.get_user(session, email="some@emil.com", is_verified=True, ...)
+    """
+    pass
+
+
+  @classmethod
+  @abstractmethod
+  async def get_users(cls, session: AsyncSession) -> Sequence[UsersORM]:
+    pass
+
+
+  @classmethod
+  @abstractmethod
+  async def delete_user(cls, session: AsyncSession, user_id: int) -> None:
+    pass
+
+
+  @classmethod
+  @abstractmethod
+  async def delete_users(cls, session: AsyncSession, users_id: list[int])-> Sequence[int]:
+    pass
+
+
+  @classmethod
+  @abstractmethod
+  async def update_user(cls, session: AsyncSession, user_id: int, **data: Any) -> int | None:
+    pass
+
+
+class UsersRepository(UsersRepositoryPolicy):
+  @classmethod
+  async def create_user(cls, session: AsyncSession, **data: Any) -> int | None:
+    """
+    :returns int | None: return new created `user_id` or None otherwise
+    """    
+    stmt = insert(cls.model).values(**data).returning(UsersORM.user_id)
 
     result = await session.execute(stmt)
 
-    await session.commit()
-
-    return OKResponce(ok=True, user_id=result.scalar_one())
+    return result.scalar_one_or_none()
 
 
-  @staticmethod
-  async def get_user(session: AsyncSession, **kwargs) -> User | None:
-    query = select(UsersORM).filter_by(**kwargs)
+  @classmethod
+  async def get_user(cls, session: AsyncSession, **filters: Any) -> UsersORM | None:
+    query = select(cls.model).filter_by(**filters)
 
-    data = await session.scalar(query)
+    result = await session.execute(query)
 
-    if data is None:
-      return None
-
-    return User.model_validate(data, from_attributes=True)
+    return result.scalar_one_or_none()
 
 
-  @staticmethod
-  async def get_users(session: AsyncSession) -> list[User] | None:
-    query = select(UsersORM)
+  @classmethod
+  async def get_users(cls, session: AsyncSession) -> Sequence[UsersORM]:
+    query = select(cls.model)
 
-    data = await session.scalars(query)
+    result = await session.execute(query)
 
-    if data is None:
-      return None
-
-    return [User.model_validate(el, from_attributes=True) for el in data]
+    return result.scalars().all()
 
 
-  @staticmethod
-  async def delete_user(session: AsyncSession, user_id: int) -> OKResponce | None:
-    stmt = delete(UsersORM).filter_by(user_id=user_id).returning(UsersORM.user_id)
-
-    result = await session.scalar(stmt)
-
-    await session.commit()
-
-    if result is None:
-      return None
-
-    return OKResponce(ok=True, user_id=result)
-
-
-  @staticmethod
-  async def delete_users(session: AsyncSession, users_id: list[int])-> list[OKResponce] | None:
-    stmt = delete(UsersORM).filter(UsersORM.user_id.in_(users_id)).returning(UsersORM.user_id)
-
-    resp = await session.scalars(stmt)
-
-    await session.commit()
-
-    result = resp.all()
-
-    if not result:
-      return None
-
-    return [OKResponce(ok=True, user_id=user_id) for user_id in users_id] 
-
-
-  @staticmethod
-  async def update_user(session: AsyncSession, user_id: int, user: UpdateUser) -> OKResponce:
+  @classmethod
+  async def delete_user(cls, session: AsyncSession, user_id: int) -> int | None:
     """
-    I could not do optional returning type of this function, because of 
-    lots of various error cases. If you have any tips please let me know)
+    :returns int | None: return deleted `user_id` or None otherwise
     """    
-    user_in_db = await UsersRepository.get_user(session, user_id=user_id)
+    stmt = delete(cls.model).filter_by(user_id=user_id).returning(cls.model.user_id)
+
+    result = await session.execute(stmt)
+
+    return result.scalar_one_or_none()
+
+
+  @classmethod
+  async def delete_users(cls, session: AsyncSession, users_id: list[int])-> Sequence[int]:
+    stmt = delete(cls.model).filter(cls.model.user_id.in_(users_id)).returning(UsersORM.user_id)
+
+    result = await session.execute(stmt)
+
+    return result.scalars().all()
+
+
+  @classmethod
+  async def update_user(cls, session: AsyncSession, user_id: int, **data: Any) -> int | None:
+    """
+    :returns int | None: return updated `user_id` or None otherwise
+    """    
+    stmt = update(cls.model).values(**data).filter_by(user_id=user_id).returning(cls.model.user_id)
     
-    if user_in_db is None:
-      raise HTTPException(detail=f"user {user_id} not exists", status_code=status.HTTP_404_NOT_FOUND)
-
-    if user.email:
-      if user_in_db.email == user.email or await UsersRepository.isUserExist(session, email=user.email):
-        raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
-
-    stmt = (
-      update(UsersORM)
-        .values(**user.model_dump(exclude_none=True, exclude_defaults=True))
-        .filter_by(user_id=user_id)
-        .returning(UsersORM.user_id)
-    )
-
-    result = await session.scalar(stmt)
-
-    await session.commit()
-
-    assert result is not None
-
-    return OKResponce(ok=True, user_id=result)
+    result = await session.execute(stmt)
+    
+    return result.scalar_one_or_none()
 
 
-  @staticmethod
-  async def verify_user(session: AsyncSession, user_id: int) -> OKResponce | None:
-    stmt = (
-      update(UsersORM)
-      .values(is_verified=True)
-      .filter_by(user_id=user_id, is_verified=False)
-      .returning(UsersORM.user_id)
-    )
-
-    result = await session.scalar(stmt)
-
-    await session.commit()
-
-    if result is None:
-      return None
-
-    return OKResponce(ok=True, user_id=result)
-
-
-  @staticmethod
-  async def isUserExist(session: AsyncSession, **kwrgs) -> bool:
-    query = select(UsersORM.user_id).filter_by(**kwrgs)
-
-    result = await session.scalars(query)
-
-    if result.first() is None:
-      return False
-
-    return True
-
-
-  @staticmethod
-  async def add_main_admin(session: AsyncSession) -> OKResponce | None:
-    admin = RegisterUser(email=DBConfig.ADMIN_EMAIL, password=DBConfig.ADMIN_PASSWORD)
-
-    result = await UsersRepository.create_user(session, admin)
-
-    assert result is not None
-
-    await UsersRepository.verify_user(session, result.user_id)
-
-    return result
-
-
-  @staticmethod
-  async def truncate_table(session: AsyncSession):
+  @classmethod
+  async def truncate_table(cls, session: AsyncSession):
     await session.execute(text("TRUNCATE TABLE users RESTART IDENTITY CASCADE"))
     await session.commit()

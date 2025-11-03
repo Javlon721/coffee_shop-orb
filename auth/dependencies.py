@@ -1,4 +1,5 @@
 from typing import Annotated
+
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 from jwt import ExpiredSignatureError
@@ -8,7 +9,7 @@ from auth.utils import create_access_token, decode_token, get_roles_from
 from db.connection import AsyncSessionDepends
 from roles.models import AvailableRoles
 from users.models import UserWithRoles
-from users.repository import UsersRepository
+from users.service import UsersService
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", refreshUrl="auth/refresh")
@@ -68,7 +69,7 @@ async def get_current_user(
     raise credentials_exception
 
   assert token_data.user_id is not None
-  user = await UsersRepository.get_user(session, user_id=token_data.user_id)
+  user = await UsersService.get_user(session, user_id=token_data.user_id)
 
   if user is None:
     raise credentials_exception

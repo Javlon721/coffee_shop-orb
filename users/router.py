@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 from auth.dependencies import AdminDependency, ValidUserDependency, is_admin
 from db.connection import AsyncSessionDepends
 from users.models import OKResponce, UpdateUser, User, UserWithRoles
-from users.repository import UsersRepository
+from users.service import UsersService
 from utils.common_responses import authorization_header, token_responses
 
 users_router = APIRouter(prefix="/users", tags=["users"])
@@ -78,7 +78,7 @@ async def get_me(user: Annotated[UserWithRoles, ValidUserDependency]) -> User:
   },
 )
 async def get_user(user_id: int,  session: AsyncSessionDepends) -> User:
-  user = await UsersRepository.get_user(session, user_id=user_id)
+  user = await UsersService.get_user(session, user_id=user_id)
 
   if user is None:
     raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_404_NOT_FOUND)
@@ -109,7 +109,7 @@ async def get_user(user_id: int,  session: AsyncSessionDepends) -> User:
   },
 )
 async def delete_user(user_id: int, session: AsyncSessionDepends) -> OKResponce:
-  result = await UsersRepository.delete_user(session, user_id)
+  result = await UsersService.delete_user(session, user_id)
 
   if result is None:
     raise HTTPException(detail=f"user {user_id} does not exists", status_code=status.HTTP_404_NOT_FOUND)
@@ -154,7 +154,7 @@ async def delete_user(user_id: int, session: AsyncSessionDepends) -> OKResponce:
   },
 )
 async def get_all_users(session: AsyncSessionDepends) -> list[User]:
-  result = await UsersRepository.get_users(session)
+  result = await UsersService.get_users(session)
 
   if result is None:
     raise HTTPException(detail=f"users not found", status_code=status.HTTP_404_NOT_FOUND)
@@ -223,4 +223,9 @@ async def update_user(
   if not user.model_dump(exclude_none=True, exclude_defaults=True):
     raise HTTPException(detail=f"update info not provided", status_code=status.HTTP_400_BAD_REQUEST)
 
-  return await UsersRepository.update_user(session, user_id, user)
+  result = await UsersService.update_user(session, user_id, user)
+
+  if result is None:
+    raise HTTPException(detail=f"some errors occured", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+  return result

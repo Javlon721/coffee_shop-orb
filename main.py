@@ -2,9 +2,9 @@ from fastapi import FastAPI
 
 
 from roles.repository import RolesRepository
-from users.repository import UsersRepository
 from users.router import users_router
 from auth.router import auth_router
+from users.service import UsersService
 from users_roles.repository import UsersRolesRepository
 from users_roles.router import users_roles_router
 from roles.router import roles_router
@@ -29,13 +29,14 @@ async def refresh_db(session: AsyncSessionDepends):
 
     await RolesRepository.insert_default_roles(session)
 
-    resp = await UsersRepository.add_main_admin(session)
+    resp = await UsersService.add_main_admin(session)
 
     assert resp is not None
 
     await UsersRolesRepository.add_main_admin_roles(session, resp.user_id)
     
     return "API ready for use"
+
 
 app.include_router(auth_router)
 app.include_router(users_router)

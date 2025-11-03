@@ -11,7 +11,7 @@ from auth.verification.models import VerificationToken
 from auth.verification.repository import VerificationRepository
 from db.connection import AsyncSessionDepends
 from users.models import RegisterUser, OKResponce, User, UserLogin
-from users.repository import  UsersRepository
+from users.service import UsersService
 from users_roles.repository import UsersRolesRepository
 from utils.utils import pretty_print
 
@@ -20,7 +20,7 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 async def authenticate_user(session: AsyncSession, user: UserLogin) -> User | None:
-  user_credential = await UsersRepository.get_user(session, email=user.email)
+  user_credential = await UsersService.get_user(session, email=user.email)
   
   if not user_credential:
     return None
@@ -102,13 +102,16 @@ async def signup(
     - **last_name**: string | None
   """
   
-  result = await UsersRepository.create_user(session, user)
+  result = await UsersService.create_user(session, user)
 
   if result is None:
     raise HTTPException(detail=f"user {user.email} already exists", status_code=status.HTTP_400_BAD_REQUEST)
 
-  background_tasks.add_task(send_verification_link, session, result.user_id, req)
-  background_tasks.add_task(UsersRolesRepository.add_default_user_role, session, result.user_id)
+  # TODO: session may be closed
+  # background_tasks.add_task(send_verification_link, session, result.user_id, req)
+  # background_tasks.add_task(UsersRolesRepository.add_default_user_role, session, result.user_id)
+
+  await session.commit()
 
   return result
 
@@ -153,7 +156,7 @@ async def verify(token: VerificationToken, session: AsyncSessionDepends) -> OKRe
   if verification is None:
     raise HTTPException(detail=f"token invalid or expired", status_code=status.HTTP_403_FORBIDDEN)
 
-  result = await UsersRepository.verify_user(session, verification.user_id)
+  result = await UsersService.verify_user(session, verification.user_id)
 
   if result is None:
     raise HTTPException(detail=f"user already verified", status_code=status.HTTP_400_BAD_REQUEST)

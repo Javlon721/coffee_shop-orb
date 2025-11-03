@@ -6,8 +6,9 @@ from celery import Celery
 from auth.verification.repository import VerificationRepository
 from db.connection import ConnectionManager
 from users.models import  OKResponce
-from users.repository import UsersRepository
 from auto_deletions.config import Config
+from users.repository import UsersRepository
+from users.service import UsersService
 
 
 app = Celery(broker=Config.URL, backend=Config.URL)
@@ -58,4 +59,7 @@ async def expired_users() -> list[OKResponce] | None:
 
     deleted_users = await UsersRepository.delete_users(session, list(expired_users_id))
     
-    return deleted_users
+    if not deleted_users:
+      return None
+
+    return [OKResponce(ok=True, user_id=user_id) for user_id in deleted_users]
