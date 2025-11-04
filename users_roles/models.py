@@ -1,26 +1,8 @@
 
-from datetime import datetime
-
-from pydantic import BaseModel
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey, UniqueConstraint
 
 from db.models import CREATED_AT, INT_PK, Base
-
-
-class RegisterUserRole(BaseModel):
-  user_id: int
-  role_id: int
-
-
-class UserRoles(RegisterUserRole):
-  id: int
-  created_at: datetime
-
-
-class OKResponce(BaseModel):
-  ok: bool
-  id: int
 
 
 class UsersRolesORM(Base):

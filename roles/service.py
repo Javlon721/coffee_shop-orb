@@ -31,6 +31,11 @@ class RolesServicePolicy(ABC):
 
 
   @abstractmethod
+  async def is_role_exists(cls, session: AsyncSession, **filters: Any) -> bool:
+    pass
+
+
+  @abstractmethod
   def model_validate(self, data: Any) -> Role:
     pass
 
@@ -53,6 +58,15 @@ class _RolesService(RolesServicePolicy):
       return None
 
     return [self.model_validate(role) for role in roles]
+
+
+  async def is_role_exists(self, session: AsyncSession, **filters: Any) -> bool:
+    result = self.repo.get_role(session, **filters)
+
+    if not result:
+      return False
+
+    return True
 
 
   async def insert_default_roles(self, session: AsyncSession) -> None:

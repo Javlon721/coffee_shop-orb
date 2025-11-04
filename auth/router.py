@@ -12,7 +12,7 @@ from auth.verification.service import VerificationService
 from db.connection import AsyncSessionDepends
 from users.schemas import RegisterUser, OKResponce, User, UserLogin
 from users.service import UsersService
-from users_roles.repository import UsersRolesRepository
+from users_roles.service import UsersRolesService
 from utils.utils import pretty_print
 
 
@@ -38,7 +38,7 @@ async def get_user_roles(session: AsyncSession, user_id: int) -> str:
   :returns: string that joined with space (i.e. "user admin superadmin")
   
   """  
-  roles = await UsersRolesRepository.get_roles_by(session, user_id)
+  roles = await UsersRolesService.get_roles_by(session, user_id)
   
   if not roles:
     return ""
@@ -109,7 +109,7 @@ async def signup(
 
   # TODO: session may be closed
   # background_tasks.add_task(send_verification_link, session, result.user_id, req)
-  # background_tasks.add_task(UsersRolesRepository.add_default_user_role, session, result.user_id)
+  # background_tasks.add_task(UsersRolesService.add_default_user_role, session, result.user_id)
 
   await session.commit()
 

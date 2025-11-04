@@ -4,8 +4,8 @@ from fastapi import APIRouter, HTTPException, status
 from auth.dependencies import AdminDependency
 from db.connection import AsyncSessionDepends
 from roles.schemas import UserRole
-from users_roles.models import RegisterUserRole, OKResponce, UserRoles
-from users_roles.repository import UsersRolesRepository
+from users_roles.schemas import RegisterUserRole, OKResponce, UserRoles
+from users_roles.service import UsersRolesService
 from utils.common_responses import authorization_header, token_responses
 
 
@@ -57,7 +57,7 @@ not_found_responce = {
   },
 )
 async def get_all(session: AsyncSessionDepends) -> list[UserRoles]:
-  result = await UsersRolesRepository.get_all(session)
+  result = await UsersRolesService.get_all(session)
   
   if result is None:
     raise HTTPException(detail=f"users_roles not found", status_code=status.HTTP_404_NOT_FOUND)
@@ -98,7 +98,7 @@ async def get_all(session: AsyncSessionDepends) -> list[UserRoles]:
   },
 )
 async def get_user_roles(user_id: int, session: AsyncSessionDepends) -> list[UserRole]:
-  result = await UsersRolesRepository.get_roles_by(session, user_id)
+  result = await UsersRolesService.get_roles_by(session, user_id)
 
   if result is None:
     raise HTTPException(detail=f"user roles not found", status_code=status.HTTP_404_NOT_FOUND)
@@ -135,5 +135,9 @@ async def add_role_to_user(data: RegisterUserRole, session: AsyncSessionDepends)
     - **user_id**: int
     - **role_id**: int
   """
+  result = await UsersRolesService.add(session, data)
+  
+  if not result:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="some error occured")
 
-  return await UsersRolesRepository.add(session, data)
+  return OKResponce(ok=True, id=result)
