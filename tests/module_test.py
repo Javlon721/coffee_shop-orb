@@ -6,15 +6,15 @@ import pytest
 import pytest_asyncio
 from sqlalchemy import text
 
-from db.config import _DBConfig
-from db.connection import _ConnectionManager
-from db.models import Base
+from src.db.config import _DBConfig
+from src.db.connection import _ConnectionManager
+from src.db.models import Base
 
-from roles import models #noqa
-from users.models import OKResponce, RegisterUser
-from users.repository import UsersRepository
-from users_roles import models #noqa
-from auth.verification import models #noqa
+from src.roles import models #noqa
+from src.users.schemas import OKResponce, RegisterUser
+from src.users.repository import UsersRepository
+from src.users_roles import models #noqa
+from src.auth.verification import models #noqa
 
 
 DBConfig = _DBConfig(_env_file=".env.test") #type: ignore

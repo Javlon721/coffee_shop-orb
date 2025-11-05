@@ -1,8 +1,9 @@
 
 from dataclasses import dataclass
 from typing import Any
-from auth.models import AccessTokenData
-from auth.utils import create_access_token, decode_token, get_roles_from
+
+from src.auth.models import AccessTokenData
+from src.auth.utils import create_access_token, decode_token, get_roles_from
 
 
 def test_jwt_tokens_data():

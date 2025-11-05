@@ -3,15 +3,16 @@ from fastapi import HTTPException, status
 from httpx import ASGITransport, AsyncClient
 import pytest_asyncio
 import pytest
-
-from db.connection import _ConnectionManager, ConnectionManager
-from roles.models import AvailableRoles
-from roles.repository import RolesRepository
 from tests.module_test import conn_manager #noqa
+
+from src.db.connection import _ConnectionManager, ConnectionManager
+from src.roles.models import AvailableRoles
+from src.roles.repository import RolesRepository
+
 from main import app
-from users.repository import UsersRepository
-from users_roles.models import RegisterUserRole
-from users_roles.repository import UsersRolesRepository
+from src.users.repository import UsersRepository
+from src.users_roles.schemas import RegisterUserRole
+from src.users_roles.repository import UsersRolesRepository
 
 
 client = TestClient(app)

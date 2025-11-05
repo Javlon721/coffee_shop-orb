@@ -1,15 +1,15 @@
 from fastapi import FastAPI
 
 
-from roles.service import RolesService
-from users.router import users_router
-from auth.router import auth_router
-from users.service import UsersService
-from users_roles.router import users_roles_router
-from roles.router import roles_router
-from db.connection import AsyncSessionDepends, create_db_tables
-from auto_deletions.router import celery_router
-from users_roles.service import UsersRolesService
+from src.roles.service import RolesService
+from src.users.router import users_router
+from src.auth.router import auth_router
+from src.users.service import UsersService
+from src.users_roles.router import users_roles_router
+from src.roles.router import roles_router
+from src.db.connection import AsyncSessionDepends, create_db_tables
+from tasks.router import celery_router
+from src.users_roles.service import UsersRolesService
 
 
 app = FastAPI()
